@@ -23,6 +23,8 @@ class _HomeViewState extends State<HomeView> {
   /// Scaffold Key
   GlobalKey<ScaffoldState> scaffoldKey = GlobalKey();
 
+  bool statsOpen = false;
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -36,67 +38,58 @@ class _HomeViewState extends State<HomeView> {
           // Bounding boxes
           boundingBoxes(results),
 
-          // Heading
-          Align(
-            alignment: Alignment.topLeft,
-            child: Container(
-              padding: EdgeInsets.only(top: 20),
-              child: Text(
-                'Object Detection Flutter',
-                textAlign: TextAlign.left,
-                style: TextStyle(
-                  fontSize: 28,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.deepOrangeAccent.withOpacity(0.6),
-                ),
-              ),
-            ),
-          ),
-
           // Bottom Sheet
-          Align(
-            alignment: Alignment.bottomCenter,
-            child: DraggableScrollableSheet(
-              initialChildSize: 0.4,
-              minChildSize: 0.1,
-              maxChildSize: 0.5,
-              builder: (_, ScrollController scrollController) => Container(
-                width: double.maxFinite,
-                decoration: BoxDecoration(
-                    color: Colors.white.withOpacity(0.9),
-                    borderRadius: BORDER_RADIUS_BOTTOM_SHEET),
-                child: SingleChildScrollView(
-                  controller: scrollController,
-                  child: Center(
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Icon(Icons.keyboard_arrow_up,
-                            size: 48, color: Colors.orange),
-                        (stats != null)
-                            ? Padding(
-                                padding: const EdgeInsets.all(8.0),
-                                child: Column(
-                                  children: [
-                                    StatsRow('Inference time:',
-                                        '${stats.inferenceTime} ms'),
-                                    StatsRow('Total prediction time:',
-                                        '${stats.totalElapsedTime} ms'),
-                                    StatsRow('Pre-processing time:',
-                                        '${stats.preProcessingTime} ms'),
-                                    StatsRow('Frame',
-                                        '${CameraViewSingleton.inputImageSize?.width} X ${CameraViewSingleton.inputImageSize?.height}'),
-                                  ],
-                                ),
-                              )
-                            : Container()
-                      ],
-                    ),
+          stats != null
+            ? Positioned(
+              top: statsOpen ? null : MediaQuery.of(context).size.height - 50,
+              bottom: statsOpen ? 0 : null,
+              width: MediaQuery.of(context).size.width,
+              child: Container(
+                color: Colors.white,
+                child: Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.start,
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        children: [
+                          SizedBox(
+                            height: 50,
+                            child: Material(
+                              child: IconButton(
+                                onPressed: () => setState(() => statsOpen = !statsOpen), 
+                                icon: Icon(Icons.info)
+                              ),
+                            ),
+                          ),
+                          SizedBox(
+                            height: 50,
+                            child: Text(
+                              "Inference stats and options\n",
+                              style: TextStyle(
+                                fontWeight: FontWeight.bold
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                      StatsRow('Inference time:',
+                          '${stats.inferenceTime} ms'),
+                      StatsRow('Total prediction time:',
+                          '${stats.totalElapsedTime} ms'),
+                      StatsRow('Pre-processing time:',
+                          '${stats.preProcessingTime} ms'),
+                      StatsRow('Frame',
+                          '${CameraViewSingleton.inputImageSize?.width} X ${CameraViewSingleton.inputImageSize?.height}'),
+                    ],
                   ),
                 ),
               ),
-            ),
-          )
+            )
+          : SizedBox()
         ],
       ),
     );
