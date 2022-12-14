@@ -1,0 +1,1 @@
+enum MLModels {YOLOV5, YOLOV7, CascadeRCNN}
