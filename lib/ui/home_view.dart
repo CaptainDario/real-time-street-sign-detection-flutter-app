@@ -67,7 +67,10 @@ class _HomeViewState extends State<HomeView> {
               bottom: statsOpen ? 0 : null,
               width: MediaQuery.of(context).size.width,
               child: Container(
-                color: Colors.white,
+                decoration: BoxDecoration(
+                  color: dcaitiBlue,
+                  borderRadius: BorderRadius.only(topLeft: Radius.circular(8), topRight: Radius.circular(8))
+                ),
                 child: Padding(
                   padding: const EdgeInsets.all(8.0),
                   child: Column(
