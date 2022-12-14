@@ -1,14 +1,14 @@
-import 'package:camera/camera.dart';
 import 'package:flutter/material.dart';
+
 import 'package:get_it/get_it.dart';
-import 'package:object_detection/ml_models.dart';
-import 'package:object_detection/tflite/recognition.dart';
-import 'package:object_detection/tflite/stats.dart';
+import 'package:camera/camera.dart';
 
 import 'package:object_detection/theme.dart';
 import 'package:object_detection/ui/bottom_sheet.dart';
+import 'package:object_detection/ui/info_page.dart';
+import 'package:object_detection/ml_models.dart';
+import 'package:object_detection/tflite/recognition.dart';
 import 'live_camera_preview.dart';
-import 'stats_row.dart';
 
 
 
@@ -24,8 +24,6 @@ class _HomeViewState extends State<HomeView> {
 
   /// Scaffold Key
   GlobalKey<ScaffoldState> scaffoldKey = GlobalKey();
-
-  bool statsOpen = false;
 
   MLModels mlModel = MLModels.YOLOV5;
 
@@ -54,7 +52,10 @@ class _HomeViewState extends State<HomeView> {
                 child: Container(
                   color: dcaitiGreen,
                   child: IconButton(
-                    onPressed: () => setState(() => statsOpen = !statsOpen), 
+                    onPressed: () => Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (context) => const InfoPage()),
+                    ), 
                     icon: Icon(Icons.info)
                   ),
                 ),
@@ -91,8 +92,7 @@ class _HomeViewState extends State<HomeView> {
 
           // Bottom Sheet
           Positioned(
-            top: statsOpen ? null : MediaQuery.of(context).size.height,
-            bottom: statsOpen ? 0 : null,
+            bottom: 0,
             width: MediaQuery.of(context).size.width,
             child: BottomInfoSheet(
               mlModel: mlModel,

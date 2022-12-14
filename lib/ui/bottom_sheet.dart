@@ -67,11 +67,6 @@ class _BottomInfoSheetState extends State<BottomInfoSheet> {
                 ,)
               ).toList()                 
             ),
-            Text(
-              "\n\nThis project is a research coorporation between DCAITI and the TU Berlin.\n"
-              "Developers: Dario Klepoch, Marvin Beese, Clemens Lotthermoser",
-              textScaleFactor: 0.8,
-            )
           ],
         ),
       ),
