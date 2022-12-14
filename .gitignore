@@ -19,3 +19,7 @@ doc/api/
 *.js_
 *.js.deps
 *.js.map
+
+# everything in the plugins folder except git keep
+plugins/*
+!plugins/.gitkeep
