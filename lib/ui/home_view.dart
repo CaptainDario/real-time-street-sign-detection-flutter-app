@@ -25,6 +25,8 @@ class _HomeViewState extends State<HomeView> {
 
   bool statsOpen = false;
 
+  MLModels mlModel = MLModels.YOLOV5;
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
