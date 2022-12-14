@@ -1,10 +1,12 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:object_detection/ml_models.dart';
 import 'package:object_detection/tflite/recognition.dart';
 import 'package:object_detection/tflite/stats.dart';
 import 'package:object_detection/ui/box_widget.dart';
 import 'package:object_detection/ui/camera_view_singleton.dart';
 
+import 'package:object_detection/theme.dart';
 import 'camera_view.dart';
 
 /// [HomeView] stacks [CameraView] and [BoxWidget]s with bottom sheet for stats
@@ -57,10 +59,15 @@ class _HomeViewState extends State<HomeView> {
       body: Stack(
         children: <Widget>[
           // Camera View
-          CameraView(resultsCallback, statsCallback),
+          Center(
+            child: CameraView(resultsCallback, statsCallback)
+          ),
 
           // Bounding boxes
-          boundingBoxes(results),
+          Align(
+            alignment: Alignment.topCenter,
+            child: boundingBoxes(results)
+          ),
 
           // Bottom Sheet
           stats != null
@@ -79,30 +86,6 @@ class _HomeViewState extends State<HomeView> {
                     mainAxisAlignment: MainAxisAlignment.center,
                     crossAxisAlignment: CrossAxisAlignment.center,
                     children: [
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.start,
-                        crossAxisAlignment: CrossAxisAlignment.center,
-                        children: [
-                          SizedBox(
-                            height: 50,
-                            child: Material(
-                              child: IconButton(
-                                onPressed: () => setState(() => statsOpen = !statsOpen), 
-                                icon: Icon(Icons.info)
-                              ),
-                            ),
-                          ),
-                          SizedBox(
-                            height: 50,
-                            child: Text(
-                              "Inference stats and options\n",
-                              style: TextStyle(
-                                fontWeight: FontWeight.bold
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
                       StatsRow('Inference time:',
                           '${stats.inferenceTime} ms'),
                       StatsRow('Total prediction time:',
