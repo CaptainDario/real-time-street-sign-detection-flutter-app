@@ -28,6 +28,28 @@ class _HomeViewState extends State<HomeView> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      appBar: AppBar(
+        titleSpacing: 0,
+        backgroundColor: dcaitiBlue,
+        title: Row(
+          children: [
+            Expanded(
+              child: AspectRatio(
+                aspectRatio: 1,
+                child: Container(
+                  color: dcaitiGreen,
+                  child: IconButton(
+                    onPressed: () => setState(() => statsOpen = !statsOpen), 
+                    icon: Icon(Icons.info)
+                  ),
+                ),
+              ),
+            ),
+            Spacer(),
+            Text("DCAITI - Street Sign Detection "),
+          ],
+        ),
+      ),
       key: scaffoldKey,
       backgroundColor: Colors.black,
       body: Stack(
