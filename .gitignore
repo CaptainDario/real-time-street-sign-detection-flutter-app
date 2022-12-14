@@ -23,3 +23,7 @@ doc/api/
 # everything in the plugins folder except git keep
 plugins/*
 !plugins/.gitkeep
+
+# everything in the blobs folder except git keep
+blobs/*
+!blobs/.gitkeep
