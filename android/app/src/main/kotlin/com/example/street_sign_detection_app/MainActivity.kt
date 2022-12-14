@@ -1,4 +1,4 @@
-package com.example.object_detection
+package com.example.street_sign_detection_app
 
 import io.flutter.embedding.android.FlutterActivity
 
