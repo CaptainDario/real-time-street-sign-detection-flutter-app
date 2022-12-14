@@ -69,9 +69,9 @@ class _HomeViewState extends State<HomeView> {
       backgroundColor: Colors.black,
       body: Stack(
         children: <Widget>[
-          // Camera View
-          Center(
-            child: CameraView(resultsCallback, statsCallback)
+          
+          LiveCameraPreview(
+            cameraController: cameraController,
           ),
 
           /*
