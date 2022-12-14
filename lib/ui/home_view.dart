@@ -106,6 +106,32 @@ class _HomeViewState extends State<HomeView> {
                           '${stats.preProcessingTime} ms'),
                       StatsRow('Frame',
                           '${CameraViewSingleton.inputImageSize?.width} X ${CameraViewSingleton.inputImageSize?.height}'),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [MLModels.YOLOV5, MLModels.YOLOV7, MLModels.CascadeRCNN].map((e) => 
+                          Row(
+                            children: 
+                            [
+                              Radio<MLModels>(
+                                value: e,
+                                groupValue: mlModel,
+                                activeColor: dcaitiGreen,
+                                onChanged: (MLModels value) {
+                                  setState(() {
+                                    mlModel = value;
+                                  });
+                                },
+                              ),
+                              Text(e.name),
+                            ]
+                          ,)
+                        ).toList()                 
+                      ),
+                      Text(
+                        "\n\nThis project is a research coorporation between DCAITI and the TU Berlin.\n"
+                        "Developers: Dario Klepoch, Marvin Beese, Clemens Lotthermoser",
+                        textScaleFactor: 0.8,
+                      )
                     ],
                   ),
                 ),
