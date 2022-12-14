@@ -33,10 +33,12 @@ dependencies:
   image: 3.2.2
   path_provider: 2.0.11
   image_picker: 0.8.6
+  get_it: 7.2.0
+  provider: 6.0.5
 
 dependency_overrides:
     tflite_flutter:
-      path: plugins/tflite_flutter_plugin
+      path: ../../tflite_flutter_plugin
 
 dev_dependencies:
   flutter_test:
