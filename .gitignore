@@ -27,3 +27,7 @@ plugins/*
 # everything in the blobs folder except git keep
 blobs/*
 !blobs/.gitkeep
+
+# ignore auto create version files
+.flutter-plugins
+.flutter-plugins-dependencies
