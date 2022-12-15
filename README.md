@@ -15,3 +15,7 @@ The source code for the flutter app of the DCAITI project: KI-basierte Algorithm
 4. Run `cd ../../; flutter pub get` in this app's directory
 
 Now you should be able to run the app.
+
+## FAQ
+
+1. If you have a problem with the `tflite_flutter_helper`-plugin copy the `TfliteFlutterHelperPlugin.kt` into the pubcache folder of it.
