@@ -2,12 +2,11 @@ import 'package:flutter/material.dart';
 
 import 'package:get_it/get_it.dart';
 import 'package:camera/camera.dart';
+import 'package:object_detection/tflite/object_detections.dart';
 
 import 'package:object_detection/theme.dart';
-import 'package:object_detection/ui/bottom_sheet.dart';
 import 'package:object_detection/ui/info_page.dart';
 import 'package:object_detection/ml_models.dart';
-import 'package:object_detection/tflite/recognition.dart';
 import 'live_camera_preview.dart';
 
 
@@ -20,27 +19,23 @@ class HomeView extends StatefulWidget {
 
 class _HomeViewState extends State<HomeView> {
   /// Results to draw bounding boxes
-  List<Recognition> results;
+  List<ObjectDetections> results = [];
 
   /// Scaffold Key
   GlobalKey<ScaffoldState> scaffoldKey = GlobalKey();
-
+  /// currently selected ML model
   MLModels mlModel = MLModels.YOLOV5;
-
-  CameraController cameraController;
 
   @override
   void initState() {
-    cameraController = CameraController(
-      GetIt.I<List<CameraDescription>>()[0],
-      ResolutionPreset.low,
-    );
+    
     super.initState();
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      
       appBar: AppBar(
         titleSpacing: 0,
         backgroundColor: dcaitiBlue,
@@ -54,7 +49,7 @@ class _HomeViewState extends State<HomeView> {
                   child: IconButton(
                     onPressed: () => Navigator.push(
                       context,
-                      MaterialPageRoute(builder: (context) => const InfoPage()),
+                      MaterialPageRoute(builder: (context) => InfoPage()),
                     ), 
                     icon: Icon(Icons.info)
                   ),
@@ -67,12 +62,12 @@ class _HomeViewState extends State<HomeView> {
         ),
       ),
       key: scaffoldKey,
-      backgroundColor: Colors.black,
+      backgroundColor: dcaitiBlack,
       body: Stack(
         children: <Widget>[
           
           LiveCameraPreview(
-            cameraController: cameraController,
+            cameraDescription: GetIt.I<List<CameraDescription>>()[0],
           ),
 
           /*
@@ -91,6 +86,7 @@ class _HomeViewState extends State<HomeView> {
           */
 
           // Bottom Sheet
+          /*
           Positioned(
             bottom: 0,
             width: MediaQuery.of(context).size.width,
@@ -101,6 +97,7 @@ class _HomeViewState extends State<HomeView> {
               }),
             )
           )
+          */
         ],
       ),
     );

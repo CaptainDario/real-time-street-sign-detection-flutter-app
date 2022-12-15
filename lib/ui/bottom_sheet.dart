@@ -11,15 +11,15 @@ class BottomInfoSheet extends StatefulWidget {
 
   final MLModels mlModel;
 
-  final void Function(MLModels mlModel) onChanged;
+  final void Function(MLModels? mlModel)? onChanged;
 
   const BottomInfoSheet(
     {
-      @required this.mlModel,
+      required this.mlModel,
       this.onChanged,
-      Key key
+      super.key
     }
-  ) : super(key: key);
+  );
 
   @override
   State<BottomInfoSheet> createState() => _BottomInfoSheetState();
@@ -57,9 +57,9 @@ class _BottomInfoSheetState extends State<BottomInfoSheet> {
                       value: e,
                       groupValue: widget.mlModel,
                       activeColor: dcaitiGreen,
-                      onChanged: (MLModels value) {
+                      onChanged: (MLModels? value) {
                         if(widget.onChanged != null)
-                          widget.onChanged(value);
+                          widget.onChanged!(value);
                       },
                     ),
                     Text(e.name),

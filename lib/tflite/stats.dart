@@ -1,23 +1,26 @@
 /// Bundles different elapsed times
 class Stats {
   /// Total time taken in the isolate where the inference runs
-  int totalPredictTime;
+  int? totalPredictTime;
 
   /// [totalPredictTime] + communication overhead time
   /// between main isolate and another isolate
-  int totalElapsedTime;
+  int? totalElapsedTime;
 
   /// Time for which inference runs
-  int inferenceTime;
+  int? inferenceTime;
 
   /// Time taken to pre-process the image
-  int preProcessingTime;
+  int? preProcessingTime;
 
   Stats(
-      {this.totalPredictTime,
-      this.totalElapsedTime,
-      this.inferenceTime,
-      this.preProcessingTime});
+      {
+        this.totalPredictTime,
+        this.totalElapsedTime,
+        this.inferenceTime,
+        this.preProcessingTime
+      }
+    );
 
   @override
   String toString() {

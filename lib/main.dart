@@ -1,9 +1,9 @@
-import 'package:camera/camera.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 import 'package:get_it/get_it.dart';
 
+import 'package:camera/camera.dart';
 import 'package:object_detection/ui/home_view.dart';
 
 
@@ -18,10 +18,13 @@ void main() async {
   runApp(MyApp());
 }
 
-void setupGetIt() async{
+Future<void> setupGetIt() async {
 
+  /// list of all cameras
   GetIt.I.registerSingleton<List<CameraDescription>>(await availableCameras());
-  
+
+  /// the object detection model
+  //GetIt.I.registerSingleton<Classifier>(Classifier());
 }
 
 class MyApp extends StatelessWidget {
