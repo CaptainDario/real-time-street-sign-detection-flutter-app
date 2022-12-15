@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 
 import 'package:get_it/get_it.dart';
 import 'package:camera/camera.dart';
-import 'package:object_detection/tflite/object_detections.dart';
+import 'package:object_detection/tflite/object_detection.dart';
 
 import 'package:object_detection/theme.dart';
 import 'package:object_detection/ui/info_page.dart';

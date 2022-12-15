@@ -2,7 +2,7 @@
 
 
 
-import 'package:object_detection/inference_backends.dart';
+import 'package:object_detection/tflite/inference_backend.dart';
 
 class Settings {
 
