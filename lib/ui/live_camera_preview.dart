@@ -4,9 +4,10 @@ import 'package:camera/camera.dart';
 
 
 
+/// A widget that shows a live camera preview of the given `cameraDescription`
 class LiveCameraPreview extends StatefulWidget {
 
-  /// The camera controller from which the video feed should be read.
+  /// The cameraDescription from which the video feed should be read.
   final CameraDescription cameraDescription;
 
   const LiveCameraPreview(
@@ -40,7 +41,7 @@ class _LiveCameraPreviewState extends State<LiveCameraPreview> with WidgetsBindi
       if (!mounted) {
         return;
       }
-      //await cameraController.startImageStream(onLatestImageAvailable);
+      await cameraController.startImageStream(onLatestImageAvailable);
       setState(() {});
     }).catchError((Object e) {
       if (e is CameraException) {
@@ -54,9 +55,6 @@ class _LiveCameraPreviewState extends State<LiveCameraPreview> with WidgetsBindi
         }
       }
     });
-
-
-
     super.initState();
   }
 
@@ -85,15 +83,16 @@ class _LiveCameraPreviewState extends State<LiveCameraPreview> with WidgetsBindi
 
   /// Callback to receive each frame [CameraImage] perform inference on it
   onLatestImageAvailable(CameraImage cameraImage) async {
-    // convert image to UINT 8
-    
+    cameraImage = cameraImage;
   }
 
   @override
   Widget build(BuildContext context) {
     // check that the camera has been initialized
     if (!cameraController.value.isInitialized) {
-      return Container();
+      return Container(
+        child: Text("Camera not initialized"),
+      );
     }
     return CameraPreview(cameraController); 
   }
