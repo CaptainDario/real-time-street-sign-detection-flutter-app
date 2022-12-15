@@ -2,7 +2,7 @@
 
 
 
-import 'package:object_detection/tflite/inference_backend.dart';
+import 'package:street_sign_detection/tflite/inference_backend.dart';
 
 class Settings {
 

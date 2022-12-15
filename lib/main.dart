@@ -4,7 +4,8 @@ import 'package:flutter/services.dart';
 import 'package:get_it/get_it.dart';
 
 import 'package:camera/camera.dart';
-import 'package:object_detection/ui/home_view.dart';
+import 'package:street_sign_detection/tflite/drawing_interpreter.dart';
+import 'package:street_sign_detection/ui/home_view.dart';
 
 
 void main() async {
@@ -24,7 +25,7 @@ Future<void> setupGetIt() async {
   GetIt.I.registerSingleton<List<CameraDescription>>(await availableCameras());
 
   /// the object detection model
-  //GetIt.I.registerSingleton<Classifier>(Classifier());
+  GetIt.I.registerSingleton<StreetSignDetectionInterpreter>(StreetSignDetectionInterpreter("StreetSignDetectionInterpreter"));
 }
 
 class MyApp extends StatelessWidget {

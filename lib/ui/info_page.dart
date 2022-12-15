@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:object_detection/theme.dart';
+import 'package:street_sign_detection/theme.dart';
 
 
 
@@ -22,7 +22,7 @@ class InfoPage extends StatelessWidget {
         padding: EdgeInsets.all(8),
         child: Text(
           "\n\nThis project is a research coorporation between DCAITI and the TU Berlin.\n"
-          "Developers: Dario Klepoch, Marvin Beese, Clemens Lotthermoser",
+          "Developers: Dario Klepoch, Marvin Beese, Clemens Lottermoser",
         ),
       ),
     );

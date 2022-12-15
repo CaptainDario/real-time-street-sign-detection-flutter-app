@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 
 import 'stats_row.dart';
-import 'package:object_detection/theme.dart';
-import 'package:object_detection/tflite/stats.dart';
-import 'package:object_detection/ml_models.dart';
+import 'package:street_sign_detection/theme.dart';
+import 'package:street_sign_detection/tflite/stats.dart';
+import 'package:street_sign_detection/ml_models.dart';
 
 
 
