@@ -8,7 +8,7 @@ import 'package:tflite_flutter/tflite_flutter.dart';
 import 'package:tflite_flutter_helper/tflite_flutter_helper.dart';
 
 import 'sign_detection_isolate.dart';
-import 'base_interpreter.dart';
+import 'interpreter_utils.dart';
 
 
 
