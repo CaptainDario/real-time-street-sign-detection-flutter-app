@@ -39,26 +39,34 @@ class _HomeViewState extends State<HomeView> {
       appBar: AppBar(
         titleSpacing: 0,
         backgroundColor: dcaitiBlue,
-        title: Row(
-          children: [
-            Expanded(
-              child: AspectRatio(
-                aspectRatio: 1,
-                child: Container(
-                  color: dcaitiGreen,
-                  child: IconButton(
-                    onPressed: () => Navigator.push(
-                      context,
-                      MaterialPageRoute(builder: (context) => InfoPage()),
-                    ), 
-                    icon: Icon(Icons.info)
-                  ),
+        title: Container(
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.centerLeft,
+              end: Alignment.centerRight,
+              colors: [dcaitiGreen.withAlpha(50), dcaitiBlue, dcaitiBlue]),
+          ),
+          child: Row(
+            children: [
+              Container(
+                height: AppBar().preferredSize.height,
+                width: AppBar().preferredSize.height,
+                color: dcaitiGreen,
+                child: IconButton(
+                  onPressed: () => Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (context) => InfoPage()),
+                  ), 
+                  icon: Icon(Icons.info)
                 ),
               ),
-            ),
-            Spacer(),
-            Text("DCAITI - Street Sign Detection "),
-          ],
+              Spacer(),
+              Container(
+                height: AppBar().preferredSize.height*0.8,
+                child: Image.asset("assets/icon/dcaiti.png")
+              ),
+            ],
+          ),
         ),
       ),
       key: scaffoldKey,
