@@ -1,10 +1,13 @@
+import 'dart:typed_data';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:street_sign_detection/tflite/IsolateData.dart';
 
-import 'package:image/image.dart' as image;
 import 'package:tflite_flutter/tflite_flutter.dart';
+import 'package:tflite_flutter_helper/tflite_flutter_helper.dart';
 
-import 'sign_detection_isolate_utils.dart';
+import 'sign_detection_isolate.dart';
 import 'base_interpreter.dart';
 
 
@@ -12,13 +15,18 @@ import 'base_interpreter.dart';
 /// The tf lite interpreter to recognize the hand drawn kanji characters.
 /// 
 /// Notifies listeners when the predictions changed.
-class SignDetectionInterpreter extends BaseInterpreter with ChangeNotifier{
+class SignDetectionInterpreter with ChangeNotifier{
 
-  // the utils for the interpreter's isolate
-  SignDetectionIsolateUtils ?_isolateUtils;
+  
+  late List<ByteBuffer> input;
 
-  /// If the interpreter was initialized successfully
-  bool wasInitialized = false;
+  late Map<int, ByteBuffer> output;
+
+  late final String usedTFLiteAssetPath;
+
+  late final Interpreter? interpreter;
+
+  final String name;
 
   /// The path to the tf lite asset
   final String _tfLiteAssetPath = "detect.tflite";
@@ -26,183 +34,153 @@ class SignDetectionInterpreter extends BaseInterpreter with ChangeNotifier{
   /// The path to the labels asset
   final String _labelAssetPath = "assets/labelmap.txt";
 
+  // the utils for the interpreter's isolate
+  SignDetectionIsolate? _inferenceIsolate;
+
+  /// If the interpreter was initialized successfully
+  bool wasInitialized = false;
+
   /// The list of all labels the model can recognize.
-  late List<String> _labels;
+  late List<String> labels;
 
   /// height of the input image (image used for inference)
-  int height = 128;
+  int height = 300;
 
   /// width of the input image (image used for inference)
-  int width = 128;
+  int width = 300;
 
-  /// The [_noPredictions] most likely predictions will be shown to the user
-  final int _noPredictions = 10;
-  
+  /// number of channels of the input image
+  int channels = 3;
+
+  /// [ImageProcessor] used to pre-process the image
+  late ImageProcessor imageProcessor;
+
+  // TensorBuffers for output tensors
+  late TensorBuffer outputLocations;
+  late TensorBuffer outputClasses;
+  late TensorBuffer outputScores;
+  late TensorBuffer numLocations;
+
+  late List _outputShapes = [];
+
+  late List _outputTypes = [];
+
   /// the prediction the CNN made
-  List<String> _predictions = List.generate(10, (index) => " ");
+  List<String> predictions = List.generate(10, (index) => " ");
 
 
 
-
-  List<String> get predictions{
-    return _predictions;
-  }
-
-  void _setPredictions(List<String> predictions){
-    _predictions = predictions;
-  }
-
-  get labels {
-    return _labels;
-  }
-
-  get isolateUtils{
-    return _isolateUtils;
-  }
-
-  get interpreteraddress{
-    return interpreter?.address;
-  }
-
-  SignDetectionInterpreter(super.name);
+  SignDetectionInterpreter({
+    this.name = "SignDetectionInterpreter"
+  });
 
 
-  /// Caution: This method needs to be called before using the interpreter.
-  void init() async {
+  Future<void> init() async {
 
     if(wasInitialized){
       debugPrint("Sign detection interpreter already initialized. Skipping init.");
     }
     else{
-      //  check if the actual model is available or only the mock model
+      //  load the model
       await Interpreter.fromAsset(_tfLiteAssetPath);
       usedTFLiteAssetPath = _tfLiteAssetPath;
 
       await loadLabels();
       await allocateInputOutput();
-      await initInterpreter();
+      //await initInterpreter(
+      //  usedTFLiteAssetPath,
 
-      _isolateUtils = SignDetectionIsolateUtils();
-      await _isolateUtils?.start();
+      //);
+
+      _inferenceIsolate = SignDetectionIsolate(
+        interpreterAddress: interpreter!.address);
+      await _inferenceIsolate?.start();
 
       wasInitialized = true;
     }
   }
 
-  /// Initialize a second interpereter inside an isolate so that inference is
-  /// not blocking the main thread
-  void initIsolate(int interpreterAdress, List<String> labels) {
-
-    interpreter = Interpreter.fromAddress(interpreterAdress);
-    _labels = labels;
-
-    // allocate memory for inference in / output
-    input = List<List<double>>.generate(
-      height, (i) => List.generate(width, (j) => 0.0)).
-      reshape<double>([1, height, width, 1]).cast();
-    output =
-      List<List<double>>.generate(1, (i) => 
-      List<double>.generate(_labels.length, (j) => 0.0));
-
-    wasInitialized = true;
-  }
-
   /// load the labels from file
   Future<void> loadLabels() async {
     var l = await rootBundle.loadString(_labelAssetPath);
-    _labels = l.split("");
+    labels = l.split("");
   }
 
   /// allocate memory for inference in / output
   Future<void> allocateInputOutput() async {
-    input = List<List<double>>.generate(
-      height, (i) => List.generate(width, (j) => 0.0)).
-    reshape<double>([1, height, width, 1]).cast();
-    output =
-      List<List<double>>.generate(1, (i) => 
-      List<double>.generate(_labels.length, (j) => 0.0));
+
+    imageProcessor = ImageProcessorBuilder()
+      //.add(ResizeWithCropOrPadOp(padSize, padSize))
+      .add(ResizeOp(width, height, ResizeMethod.BILINEAR))
+      .build();
+
+    input = [imageProcessor.process(
+      TensorImage.fromTensorBuffer(
+        TensorBuffer.createFixedSize([1, width, height, channels], TfLiteType.float32)
+      )
+    ).buffer];
+
+    interpreter = await Interpreter.fromAsset(this._tfLiteAssetPath);
+
+    interpreter!.getOutputTensors().forEach((tensor) {
+      _outputShapes.add(tensor.shape);
+      _outputTypes.add(tensor.type);
+    });
+
+    outputLocations = TensorBufferFloat(_outputShapes[0]);
+    outputClasses = TensorBufferFloat(_outputShapes[1]);
+    outputScores = TensorBufferFloat(_outputShapes[2]);
+    numLocations = TensorBufferFloat(_outputShapes[3]);
+  
+    output = {
+      0: outputLocations.buffer,
+      1: outputClasses.buffer,
+      2: outputScores.buffer,
+      3: numLocations.buffer,
+    };
   }
 
-  @override
+
+  /// Process the input, runs inference on it and returns the output
+  /// 
+  /// Note: Afterwards, the output is also available as `.output`
+  Future<Map<int, ByteBuffer>> runInference(List<ByteBuffer> input) async {
+    if(!wasInitialized) {
+      throw Exception(
+        "You are trying to use the interpreter before it was initialized!\n"
+        "Execute init() first!"
+      );
+    }
+
+    _inferenceIsolate!.sendPort.send(IsolateData(input: input, output: output));
+    output = await _inferenceIsolate!.messageQueue.next;
+
+    notifyListeners();
+
+    return output;
+  }
+
+  
   void free() {
-    if(interpreter == null){
-      debugPrint("No interpreter was initialized");
+    if(!wasInitialized){
+      debugPrint("Has not been initialized");
       return;
     }
 
     interpreter!.close();
-    output = [[]];
-    input = [[[[]]]];
+    output = {};
+    input = [];
     interpreter = null;
-    clearPredictions();
     wasInitialized = false;
   }
 
-  /// Clear all predictions by setting them to " "
-  void clearPredictions(){
-    _setPredictions(List.generate(_noPredictions, (index) => " "));
-    notifyListeners();
-  }
+}
 
-  /// Create predictions based on the drawing by running inference on the CNN
-  ///
-  /// After running the inference the 10 most likely predictions are
-  /// returned ordered by how likely they are [likeliest, ..., unlikeliest].
-  void runInference(Uint8List inputImage, {bool runInIsolate = true}) async {
-    
-    if(!wasInitialized) {
-      throw Exception(
-        "You are trying to use the interpreter before it was initialized!\n" "Execute init() first!"
-      );
-    }
-
-    if(runInIsolate){
-      _predictions = await _isolateUtils?.runInference(
-        inputImage,
-        interpreter?.address ?? 0,
-        labels
-      );
-    }
-    else{
-
-      // take image from canvas and resize it
-      image.Image base = image.decodeImage(inputImage)!;
-      image.Image resizedImage = image.copyResize(base,
-        height: height, width: width, interpolation: image.Interpolation.cubic);
-      resizedImage = image.gaussianBlur(resizedImage, 2);
-      Uint8List resizedBytes = 
-        resizedImage.getBytes(format: image.Format.luminance);
-
-      // convert image for inference into shape [1, height, width, 1]
-      // also apply thresholding and normalization [0, 1]
-      for (int x = 0; x < height; x++) {
-        for (int y = 0; y < width; y++) {
-          double val = resizedBytes[(x * width) + y].toDouble();
-          
-          input[0][x][y][0] = val;
-        }
-      }
-
-      // convert image array to str to show for debugging
-      //var imageStr = _input.toString();
-
-      // run inference
-      interpreter!.run(input, output);
-
-      // get the 10 most likely predictions
-      for (int c = 0; c < _noPredictions; c++) {
-        int index = 0;
-        for (int i = 0; i < output[0].length; i++) {
-          if (output[0][i] > output[0][index]){
-            index = i;
-          }
-        }
-        predictions[c] = _labels[index];
-        output[0][index] = 0.0;
-      }
-    }
-
-    notifyListeners();
-  }
-
+///
+Future<void> runInterpreter(
+  Interpreter interpreter,
+  List<ByteBuffer> input,
+  Map<int, Object> outputs
+) async {
+  interpreter.runForMultipleInputs(input, outputs);
 }
