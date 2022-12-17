@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_svg/svg.dart';
+
 import 'package:street_sign_detection/theme.dart';
 
 
@@ -23,23 +23,26 @@ class InfoPage extends StatelessWidget {
         padding: EdgeInsets.all(8),
         child: Column(
           children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceAround,
-              children: [
-                Container(
-                  height: MediaQuery.of(context).size.width*0.2,
-                  child: Image.asset("assets/icon/tu.png"),
-                ),
-                Container(
-                  color: Colors.green,
-                  height: MediaQuery.of(context).size.width*0.2,
-                  child: SvgPicture.asset("assets/icon/dcaiti.svg"),
-                  //color: Colors.white,
-                )
-              ],
+            Container(
+              height: MediaQuery.of(context).size.height*0.1,
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceAround,
+                children: [
+                  Container(
+                    height: 50,
+                    child: Image.asset("assets/icon/tu.png"),
+                  ),
+                  Container(
+                    height: 50,
+                    child: Image.asset("assets/icon/dcaiti.png"),
+                    //color: Colors.white,
+                  )
+                ],
+              ),
             ),
             Text(
-              "\n\nThis project is a research coorporation between DCAITI and the TU Berlin.\n"
+              "\n\nThis project is a research coorporation between DCAITI and the TU Berlin."
+              "\n\n"
               "Developers: Dario Klepoch, Marvin Beese, Clemens Lottermoser",
             ),
           ],
