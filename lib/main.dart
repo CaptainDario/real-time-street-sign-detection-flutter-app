@@ -16,7 +16,7 @@ void main() async {
 
   await setupGetIt();
 
-  runApp(MyApp());
+  runApp(SignDetectionApp());
 }
 
 Future<void> setupGetIt() async {
@@ -26,11 +26,12 @@ Future<void> setupGetIt() async {
 
   /// the object detection model
   GetIt.I.registerSingleton<SignDetectionInterpreter>(
-    SignDetectionInterpreter("StreetSignDetectionInterpreter")
+    SignDetectionInterpreter(name: "StreetSignDetectionInterpreter")
   );
+  await GetIt.I<SignDetectionInterpreter>().init();
 }
 
-class MyApp extends StatelessWidget {
+class SignDetectionApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
