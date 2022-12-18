@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 
 import 'package:camera/camera.dart';
 import 'package:get_it/get_it.dart';
-import 'package:image/image.dart' as Image;
 
 import 'package:street_sign_detection/tflite/object_detection.dart';
 import 'package:street_sign_detection/tflite/sign_detection_interpreter.dart';
