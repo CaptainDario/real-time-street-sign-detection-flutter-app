@@ -1,13 +1,11 @@
 import 'package:flutter/material.dart';
 
-import 'package:get_it/get_it.dart';
-import 'package:camera/camera.dart';
 import 'package:street_sign_detection/tflite/object_detection.dart';
 
 import 'package:street_sign_detection/theme.dart';
 import 'package:street_sign_detection/ui/info_page.dart';
 import 'package:street_sign_detection/ml_models.dart';
-import 'live_camera_preview.dart';
+import 'package:street_sign_detection/ui/object_detector.dart';
 
 
 
@@ -71,43 +69,7 @@ class _HomeViewState extends State<HomeView> {
       ),
       key: scaffoldKey,
       backgroundColor: dcaitiBlack,
-      body: Stack(
-        children: <Widget>[
-          
-          LiveCameraPreview(
-            cameraDescription: GetIt.I<List<CameraDescription>>()[0],
-          ),
-
-          /*
-          // change camera button
-          Positioned(
-            bottom: 50,
-            right: 50,
-            child: Container(
-              height: 100,
-              child: IconButton(
-                icon: Icon(Icons.cameraswitch),
-                onPressed: () {},
-              ),
-            ),
-          ),
-          */
-
-          // Bottom Sheet
-          /*
-          Positioned(
-            bottom: 0,
-            width: MediaQuery.of(context).size.width,
-            child: BottomInfoSheet(
-              mlModel: mlModel,
-              onChanged: (value) => setState(() {
-                mlModel = value;
-              }),
-            )
-          )
-          */
-        ],
-      ),
+      body: ObjectDetector()
     );
   }
 }
