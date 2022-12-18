@@ -1,6 +1,11 @@
 import 'package:flutter/material.dart';
 
 import 'package:camera/camera.dart';
+import 'package:get_it/get_it.dart';
+import 'package:image/image.dart' as Image;
+
+import 'package:street_sign_detection/tflite/object_detection.dart';
+import 'package:street_sign_detection/tflite/sign_detection_interpreter.dart';
 
 
 
@@ -25,7 +30,8 @@ class _LiveCameraPreviewState extends State<LiveCameraPreview> with WidgetsBindi
 
   late CameraController cameraController;
 
-  bool predicting = false;
+  bool runningInference = false;
+
 
   @override
   void initState() {
@@ -65,7 +71,7 @@ class _LiveCameraPreviewState extends State<LiveCameraPreview> with WidgetsBindi
     super.dispose();
   }
 
-  /// Resume/stop camera stream when closing the app
+  /// Resume/stop camera stream when opening/sclosing the app
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) async {
     switch (state) {
@@ -83,7 +89,17 @@ class _LiveCameraPreviewState extends State<LiveCameraPreview> with WidgetsBindi
 
   /// Callback to receive each frame [CameraImage] perform inference on it
   onLatestImageAvailable(CameraImage cameraImage) async {
-    cameraImage = cameraImage;
+    
+    if(!runningInference){
+
+      runningInference = true;
+
+      GetIt.I<ObjectDetections>().objectDetections =
+        (await GetIt.I<SignDetectionInterpreter>().runInference(cameraImage));
+
+      runningInference = false;
+      
+    }
   }
 
   @override
