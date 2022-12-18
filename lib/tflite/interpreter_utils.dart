@@ -8,19 +8,18 @@ import 'inference_backend.dart';
 
 
 
-/// Checks for the available backends and uses the best available backend. <br/>
+/// Checks for the available backends and uses the best available backend.
+/// For this a valid `input`, `output` and function `runInterpreter` (defines
+/// how to run the given TF Lite model at `tfLiteAssetPath)` needs to be provided
 /// With `exclude` certain delegates can be excluded.
 /// 
-/// Delegate support and order: <br/>
-/// iOS    : CoreML > Metal > XNNPack > CPU <br/>
-/// Android: NNApi > GPU > XNNPack > CPU <br/>
-/// Windows: GPU (OpenCL) > XNNPack > CPU <br/>
-/// Mac    : GPU (OpenCL) > XNNPack > CPU <br/>
-/// Linux  : GPU (OpenCL) > XNNPack > CPU <br/>
-///
-/// Caution: needs to be called before using the interpreter
-/// TODO use the exclude parameter
-Future<Interpreter> initInterpreter(
+/// Delegate support and order: 
+/// * iOS    : CoreML > Metal > XNNPack > CPU <br/>
+/// * Android: NNApi > GPU > XNNPack > CPU <br/>
+/// * Windows: GPU (OpenCL) > XNNPack > CPU <br/>
+/// * Mac    : GPU (OpenCL) > XNNPack > CPU <br/>
+/// * Linux  : GPU (OpenCL) > XNNPack > CPU <br/>
+Future<Interpreter> initOptimalInterpreter(
   String tfLiteAssetPath,
   Object input,
   Object output,
@@ -29,6 +28,8 @@ Future<Interpreter> initInterpreter(
     List<InferenceBackend>? exclude
   }
 ) async {
+
+  /// TODO use the exclude parameter
 
   Interpreter interpreter;
 
@@ -68,7 +69,9 @@ Future<Interpreter> _initInterpreterAndroid(
     void Function(Interpreter interpreter) runInterpreter,
   ) async {
 
-  Interpreter interpreter;
+  Interpreter interpreter = await _cpuInterpreter(assetPath);
+
+  return interpreter;
 
   // get platform information
   //DeviceInfoPlugin deviceInfo = DeviceInfoPlugin();
