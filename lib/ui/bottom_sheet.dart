@@ -82,6 +82,7 @@ class _BottomInfoSheetState extends State<BottomInfoSheet> {
               
               // ML models
               SingleChildScrollView(
+                scrollDirection: Axis.horizontal,
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: widget.availablemlModels.map((e) => 
