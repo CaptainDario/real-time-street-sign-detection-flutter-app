@@ -94,9 +94,8 @@ class _HomeViewState extends State<HomeView> {
       ),
       key: scaffoldKey,
       backgroundColor: dcaitiBlack,
-      body: Stack(
-        children: [
-          ObjectDetector(),
+            children: [
+              CameraObjectDetector(GetIt.I<List<CameraDescription>>()[selectedCamera]),
 
           // change camera button
           Positioned(
