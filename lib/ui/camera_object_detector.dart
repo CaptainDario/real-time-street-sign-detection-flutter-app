@@ -17,11 +17,14 @@ class CameraObjectDetector extends StatefulWidget {
 
   /// the camera description of the camera that should be used for the live preview
   final CameraDescription cameraDescription;
+  /// Called when the cameraController was created and provides it as argument
+  final void Function(CameraController cameraController)? onCameraControllerCreated;
 
 
   const CameraObjectDetector(
     this.cameraDescription,
     {
+      this.onCameraControllerCreated,
       super.key
     }
   );
@@ -86,7 +89,10 @@ class _CameraObjectDetectorState extends State<CameraObjectDetector> with Widget
         return;
       }
       await cameraController.startImageStream(onLatestImageAvailable);
-      setState(() {});
+      setState(() {
+        if(widget.onCameraControllerCreated != null)
+          widget.onCameraControllerCreated!(cameraController);
+      });
     }).catchError((Object e) {
       if (e is CameraException) {
         switch (e.code) {
