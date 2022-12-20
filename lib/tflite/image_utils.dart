@@ -81,3 +81,16 @@ void saveImage(imageLib.Image image, [int i = 0]) async {
   await fileOnDevice.writeAsBytes(jpeg, flush: true);
   print('Saved $appPath/out$i.jpg');
 }
+
+  /// Converts the given `CameraImage` to `Image.Image` and saves it to the 
+  /// DocumentsDirectory
+  void writeImageToDocsDir(CameraImage cameraImage) async {
+
+    var c = convertCameraImage(cameraImage);
+    Directory appDocDirectory = await getApplicationDocumentsDirectory();
+
+    await new Directory(appDocDirectory.path+'/'+'sign_detection').create(recursive: true);
+    
+    await File(appDocDirectory.path+'/sign_detection/thumbnail.png').writeAsBytes(imageLib.encodeJpg(c));
+    print(appDocDirectory.path+'/'+'sign_detection');
+  }
