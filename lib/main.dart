@@ -2,10 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 import 'package:get_it/get_it.dart';
-
 import 'package:camera/camera.dart';
+
 import 'package:street_sign_detection/settings.dart';
 import 'package:street_sign_detection/tflite/sign_detection_interpreter.dart';
+import 'package:street_sign_detection/tflite/stats.dart';
 import 'package:street_sign_detection/ui/home_view.dart';
 
 
@@ -34,8 +35,9 @@ Future<void> setupGetIt() async {
     300, 300, 3
   );
 
-  /// current configuration
+  /// current configuration and stats
   GetIt.I.registerSingleton<Settings>(Settings());
+  GetIt.I.registerSingleton<InferenceStats>(InferenceStats());
 }
 
 class SignDetectionApp extends StatelessWidget {
