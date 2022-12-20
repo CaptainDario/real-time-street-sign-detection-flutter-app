@@ -1,11 +1,14 @@
 import 'package:flutter/material.dart';
 
-import 'package:street_sign_detection/tflite/object_detection.dart';
+import 'package:get_it/get_it.dart';
 
+import 'package:street_sign_detection/tflite/object_detection.dart';
 import 'package:street_sign_detection/theme.dart';
+import 'package:street_sign_detection/ui/bottom_sheet.dart';
 import 'package:street_sign_detection/ui/info_page.dart';
 import 'package:street_sign_detection/ml_models.dart';
 import 'package:street_sign_detection/ui/object_detector.dart';
+import 'package:street_sign_detection/settings.dart';
 
 
 
@@ -24,10 +27,32 @@ class _HomeViewState extends State<HomeView> {
   /// currently selected ML model
   MLModels mlModel = MLModels.YOLOV5;
 
+  /// the current y position of the bottom sheet
+  double bottomSheetY = 0;
+  /// The height of the bottom sheet
+  double? bottomSheetHeight;
+  /// The minimum y value until where the bottom sheet can be dragged
+  double? bottomSheetMinY;
+  /// The maximumy value until where the bottom sheet can be draggeds
+  double? bottomSheetMaxY;
+  /// The minimum size of the bottom sheet
+  double bottomSheetMinHeight = 2*8 + 20;
+  /// The key to access the bottoms sheets render context
+  GlobalKey bottomSheetKey = GlobalKey();
+
   @override
   void initState() {
-    
     super.initState();
+    // get the height of the bottom sheet from the last rendered frame and
+    // max and min drag values
+    WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
+      setState(() {
+        bottomSheetHeight = bottomSheetKey.currentContext!.size!.height;
+        bottomSheetY = -bottomSheetHeight! + bottomSheetMinHeight;
+        bottomSheetMinY = -bottomSheetHeight! + bottomSheetMinHeight;
+        bottomSheetMaxY = 0;
+      });
+    });
   }
 
   @override
@@ -69,7 +94,58 @@ class _HomeViewState extends State<HomeView> {
       ),
       key: scaffoldKey,
       backgroundColor: dcaitiBlack,
-      body: ObjectDetector()
+      body: Stack(
+        children: [
+          ObjectDetector(),
+
+          // change camera button
+          Positioned(
+            bottom: 50 + (bottomSheetHeight == null ? 0 : bottomSheetMinHeight),
+            right: 50,
+            child: Container(
+              child: IconButton(
+                icon: Icon(
+                  Icons.cameraswitch,
+                  size: 40
+                ),
+                onPressed: () {},
+              ),
+            ),
+          ),
+
+          // Bottom Sheet
+          Positioned(
+            bottom: bottomSheetHeight == null ? double.infinity : bottomSheetY,
+            width: MediaQuery.of(context).size.width,
+            child: BottomInfoSheet(
+              key: bottomSheetKey,
+
+              mlModel: GetIt.I<Settings>().mlModel,
+              availablemlModels: MLModels.values,
+              onChangedModel: (value) => setState(() {
+                if(value != null)
+                  GetIt.I<Settings>().mlModel = value;
+              }),
+
+              backend: GetIt.I<Settings>().inferenceBackend,
+              availableBackends: GetIt.I<Settings>().inferenceBackends,
+              onChangedBackend: (backend) => setState(() {
+                if(backend != null)
+                  GetIt.I<Settings>().inferenceBackend = backend;
+              }),
+
+              onDragged: (details) {
+                if(bottomSheetY - details.delta.dy < bottomSheetMinY! || 
+                  bottomSheetY - details.delta.dy > bottomSheetMaxY!)
+                  return;
+                setState(() {
+                  bottomSheetY -= details.delta.dy;
+                });
+              },
+            )
+          )
+        ],
+      )
     );
   }
 }
