@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
+import 'package:device_info_plus/device_info_plus.dart';
 import 'package:tflite_flutter/tflite_flutter.dart';
 import 'package:universal_io/io.dart';
 
@@ -69,41 +70,46 @@ Future<Interpreter> _initInterpreterAndroid(
     void Function(Interpreter interpreter) runInterpreter,
   ) async {
 
-  Interpreter interpreter = await _cpuInterpreter(assetPath);
-
-  return interpreter;
+  Interpreter interpreter;
 
   // get platform information
-  //DeviceInfoPlugin deviceInfo = DeviceInfoPlugin();
-  //AndroidDeviceInfo androidInfo = await deviceInfo.androidInfo;
+  DeviceInfoPlugin deviceInfo = DeviceInfoPlugin();
+  AndroidDeviceInfo androidInfo = await deviceInfo.androidInfo;
 
-  // try NNAPI delegate
-  try{
-    interpreter = await _nnapiInterpreter(assetPath);
-    runInterpreter(interpreter);
-    debugPrint("Interpreter uses NNAPI delegate");
-  }
-  // on exception try GPU delegate
-  catch (e){ 
-    try {
-      interpreter = await _gpuInterpreter(assetPath);
+  /// check that the device is not running on an emulator
+  if(androidInfo.isPhysicalDevice){
+    // try NNAPI delegate
+    try{
+      interpreter = await _nnapiInterpreter(assetPath);
       runInterpreter(interpreter);
-      debugPrint("Interpreter uses GPU v2 delegate");
+      debugPrint("Interpreter uses NNAPI delegate");
     }
-    // on exception try XNNPack CPU delegate
-    catch (e){
-      try{
-        interpreter = await _xxnPackInterpreter(assetPath);
+    // on exception try GPU delegate
+    catch (e){ 
+      try {
+        interpreter = await _gpuInterpreter(assetPath);
         runInterpreter(interpreter);
-        debugPrint("Interpreter uses XNNPack delegate");
+        debugPrint("Interpreter uses GPU v2 delegate");
       }
-      // on exception use CPU delegate
-      catch (e) {
-        interpreter = await _cpuInterpreter(assetPath);
-        runInterpreter(interpreter);
-        debugPrint("Interpreter uses CPU");
+      // on exception try XNNPack CPU delegate
+      catch (e){
+        try{
+          interpreter = await _xxnPackInterpreter(assetPath);
+          runInterpreter(interpreter);
+          debugPrint("Interpreter uses XNNPack delegate");
+        }
+        // on exception use CPU delegate
+        catch (e) {
+          interpreter = await _cpuInterpreter(assetPath);
+          runInterpreter(interpreter);
+          debugPrint("Interpreter uses CPU");
+        }
       }
     }
+  }
+  // if emulator only allow cpu inference
+  else{
+    interpreter = await _cpuInterpreter(assetPath);
   }
 
   return interpreter;
