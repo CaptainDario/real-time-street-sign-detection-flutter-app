@@ -44,8 +44,11 @@ class _HomeViewState extends State<HomeView> {
   GlobalKey bottomSheetKey = GlobalKey();
 
   /// the camera from which the life preview should be shown
-  int selectedCamera = 0;
-
+  int noSelectedCamera = 0;
+  /// The currently used camera controller
+  CameraController? currentCameraController;
+  /// If the preview is currently running
+  bool isPreviewing = true;
 
 
   @override
@@ -104,7 +107,37 @@ class _HomeViewState extends State<HomeView> {
       backgroundColor: dcaitiBlack,
       body: Stack(
         children: [
-          CameraObjectDetector(GetIt.I<List<CameraDescription>>()[selectedCamera]),
+          CameraObjectDetector(
+            GetIt.I<List<CameraDescription>>()[noSelectedCamera],
+            onCameraControllerCreated: (cameraController) =>
+              currentCameraController = cameraController,
+          ),
+
+          // change camera button
+          Positioned(
+            bottom: 50 + (bottomSheetHeight == null ? 0 : bottomSheetMinHeight),
+            right: MediaQuery.of(context).size.width / 2 - 40/2,
+            child: Container(
+              child: IconButton(
+                icon: Icon(
+                  isPreviewing ? Icons.videocam_off : Icons.videocam,
+                  size: 40
+                ),
+                onPressed: () {
+                  setState(() {
+                    if(currentCameraController != null && isPreviewing){
+                      currentCameraController!.pausePreview();
+                      isPreviewing = false;
+                    }
+                    else if(currentCameraController != null && !isPreviewing){
+                      currentCameraController!.resumePreview();
+                      isPreviewing = true;
+                    }
+                  });
+                },
+              ),
+            ),
+          ),
 
           // change camera button
           Positioned(
@@ -118,10 +151,10 @@ class _HomeViewState extends State<HomeView> {
                 ),
                 onPressed: () {
                   setState(() {
-                    selectedCamera += 1;
-                    if(selectedCamera == GetIt.I<List<CameraDescription>>().length)
-                      selectedCamera = 0;
-                    print("camera index $selectedCamera");
+                    noSelectedCamera += 1;
+                    if(noSelectedCamera == GetIt.I<List<CameraDescription>>().length)
+                      noSelectedCamera = 0;
+                    print("camera index $noSelectedCamera");
                   });
                 },
               ),
