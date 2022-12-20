@@ -1,12 +1,12 @@
-import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'dart:typed_data';
 
 import 'package:tflite_flutter/tflite_flutter.dart';
 import 'package:camera/camera.dart';
 
 import 'sign_detection_isolate.dart';
-import 'interpreter_utils.dart';
+import 'package:street_sign_detection/tflite/interpreter_utils.dart';
 import 'package:street_sign_detection/tflite/object_detection.dart';
 import 'package:street_sign_detection/tflite/sign_detection_data.dart';
 
@@ -29,7 +29,7 @@ class SignDetectionInterpreter with ChangeNotifier{
   bool wasInitialized = false;
 
   /// The path to the tf lite asset
-  final String tfLiteAssetPath ;
+  final String tfLiteAssetPath;
   /// The path to the labels asset
   final String labelAssetPath;
   /// The asset path to the used asset for creating the interpreter
@@ -57,7 +57,11 @@ class SignDetectionInterpreter with ChangeNotifier{
 
 
   /// Initializes this interprerter with the given values
-  Future<void> init(int height, int width, int channels) async {
+  Future<void> init(
+    int inputImageHeight, int inputImageWidth, int inputImagechannels,
+    int modelInputHeight, int modelInputWidth, int modelInputChannels, 
+    ) async 
+  {
 
     if(wasInitialized){
       debugPrint("Sign detection interpreter already initialized. Skipping init.");
@@ -66,12 +70,14 @@ class SignDetectionInterpreter with ChangeNotifier{
     
     // load data
     _usedTFLiteAssetPath = tfLiteAssetPath;
-    signDetectionData = SignDetectionData(height, width, channels, await loadLabels());
-    signDetectionData.setupOutput(await Interpreter.fromAsset(tfLiteAssetPath));
+    signDetectionData = SignDetectionData(
+      inputImageHeight, inputImageWidth, inputImagechannels,
+      modelInputWidth, modelInputHeight, modelInputChannels, 
+      await loadLabels());
+    signDetectionData.setupOutput(await Interpreter.fromAsset(_usedTFLiteAssetPath));
 
     // find the best available backend and load the model
     interpreter = await Interpreter.fromAsset(tfLiteAssetPath);
-    /*
     await initOptimalInterpreter(
       _usedTFLiteAssetPath,
       signDetectionData.generateMockInput(),
@@ -82,7 +88,7 @@ class SignDetectionInterpreter with ChangeNotifier{
           input as List<ByteBuffer>,
           output as Map<int, Object>
         )
-    );*/
+    );
 
     // create and setup isolate
     _inferenceIsolate = SignDetectionIsolate();
@@ -118,10 +124,10 @@ class SignDetectionInterpreter with ChangeNotifier{
       return;
     }
 
-    //_interpreter.close();
     _inferenceIsolate!.sendPort.send(null);
     _inferenceIsolate!.stopIsolate();
     _inferenceIsolate = null;
+    interpreter.close();
     wasInitialized = false;
   }
 

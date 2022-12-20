@@ -1,7 +1,6 @@
 import 'dart:isolate';
 import 'package:async/async.dart';
 
-import 'package:camera/camera.dart';
 import 'package:tflite_flutter/tflite_flutter.dart';
 import 'package:tflite_flutter_helper/tflite_flutter_helper.dart';
 

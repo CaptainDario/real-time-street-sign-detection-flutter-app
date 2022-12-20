@@ -21,9 +21,15 @@ class SignDetectionData {
 
   ImageProcessor? imageProcessor;
 
-  ///
+  /// A list containing all labels that the model can detect
   final List<String> labels;
 
+  /// The width of the input image (to this image pre processing is applied)
+  int inputImageWidth;
+  /// The height of the input image (to this image pre processing is applied)
+  int inputImageHeight;
+  /// The channels of the input image (to this image pre processing is applied)
+  int inputImageChannels;
   /// The width of the input for interpreter
   int modelInputWidth;
   /// The height of the input for interpreter
@@ -53,9 +59,8 @@ class SignDetectionData {
   /// height, channels should match the input to the model and the `labels` the
   /// class labels of the model.
   SignDetectionData(
-    this.modelInputHeight,
-    this.modelInputWidth,
-    this.modelInputChannels,
+    this.inputImageHeight, this.inputImageWidth, this.inputImageChannels,
+    this.modelInputHeight, this.modelInputWidth, this.modelInputChannels,
     this.labels,
   );
 
@@ -99,6 +104,7 @@ class SignDetectionData {
   Future<TensorImage> preProcessRawInput(CameraImage input) async {
     Image.Image img = (await convertCameraImage(input));
 
+    // the camera feed on android does not rotate when the device is in portrait
     if (Platform.isAndroid) {
       img = Image.copyRotate(img, 90);
     }
@@ -106,11 +112,13 @@ class SignDetectionData {
     // convert image to tensor and resize + crop it to the input dimension
     // of the model
     TensorImage tensorImg = TensorImage.fromImage(img);
-    if(imageProcessor == null)
+    if(imageProcessor == null){
+      int largestSide = max(this.inputImageHeight, this.inputImageWidth);
       imageProcessor = ImageProcessorBuilder()
-        .add(ResizeWithCropOrPadOp(320, 320))
-        .add(ResizeOp(300, 300, ResizeMethod.BILINEAR))
+        .add(ResizeWithCropOrPadOp(largestSide, largestSide))
+        .add(ResizeOp(modelInputHeight, modelInputWidth, ResizeMethod.BILINEAR))
         .build();
+    }
     tensorImg = imageProcessor!.process(tensorImg);
 
     return tensorImg;
@@ -142,11 +150,9 @@ class SignDetectionData {
       var label = labels.elementAt(labelIndex);
 
       if (score > 0.5) {
-        // inverse of rect
-        // [locations] corresponds to the image size 300 X 300
-        // inverseTransformRect transforms it our [inputImage]
+        // applies the inverse operation of the image procesor
         Rect transformedRect = imageProcessor!.inverseTransformRect(
-          locations[i], 240, 320);
+          locations[i], inputImageHeight, inputImageWidth);
 
         detections.add(
           ObjectDetection(i, label, score, transformedRect),
