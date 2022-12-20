@@ -2,9 +2,13 @@ import 'package:flutter/material.dart';
 
 import 'package:camera/camera.dart';
 import 'package:get_it/get_it.dart';
+import 'package:image/image.dart';
+import 'package:path_provider/path_provider.dart';
+import 'package:street_sign_detection/tflite/image_utils.dart';
 
 import 'package:street_sign_detection/tflite/object_detection.dart';
 import 'package:street_sign_detection/tflite/sign_detection_interpreter.dart';
+import 'package:universal_io/io.dart';
 
 
 
@@ -13,9 +17,12 @@ class LiveCameraPreview extends StatefulWidget {
 
   /// The cameraDescription from which the video feed should be read.
   final CameraDescription cameraDescription;
+  /// The child widget of the camera view
+  final Widget? child;
 
   const LiveCameraPreview(
     {
+      this.child,
       required this.cameraDescription,
       super.key
     }
@@ -37,7 +44,7 @@ class _LiveCameraPreviewState extends State<LiveCameraPreview> with WidgetsBindi
 
     cameraController = CameraController(
       widget.cameraDescription,
-      ResolutionPreset.low,
+      ResolutionPreset.high,
       enableAudio: false,
       imageFormatGroup: ImageFormatGroup.bgra8888
     );
@@ -86,7 +93,7 @@ class _LiveCameraPreviewState extends State<LiveCameraPreview> with WidgetsBindi
     }
   }
 
-  /// Callback to receive each frame [CameraImage] perform inference on it
+  /// Callback to receive each frame `CameraImage` perform inference on it
   onLatestImageAvailable(CameraImage cameraImage) async {
     
     if(!runningInference){
@@ -96,8 +103,7 @@ class _LiveCameraPreviewState extends State<LiveCameraPreview> with WidgetsBindi
       GetIt.I<ObjectDetections>().objectDetections =
         (await GetIt.I<SignDetectionInterpreter>().runInference(cameraImage));
 
-      runningInference = false;
-      
+        runningInference = false;
     }
   }
 
@@ -109,7 +115,23 @@ class _LiveCameraPreviewState extends State<LiveCameraPreview> with WidgetsBindi
         child: Text("Camera not initialized"),
       );
     }
-    return CameraPreview(cameraController); 
+    return CameraPreview(
+      cameraController,
+      child: widget.child,
+    ); 
+  }
+
+  /// Converts the given `CameraImage` to `Image.Image` and saves it to the 
+  /// DocumentsDirectory
+  void writeImageToDocsDir(CameraImage cameraImage) async {
+
+    var c = convertCameraImage(cameraImage);
+    Directory appDocDirectory = await getApplicationDocumentsDirectory();
+
+    await new Directory(appDocDirectory.path+'/'+'sign_detection').create(recursive: true);
+    
+    await File(appDocDirectory.path+'/sign_detection/thumbnail.png').writeAsBytes(encodeJpg(c));
+    print(appDocDirectory.path+'/'+'sign_detection');
   }
 
 }
