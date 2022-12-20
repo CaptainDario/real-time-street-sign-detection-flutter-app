@@ -29,7 +29,10 @@ Future<void> setupGetIt() async {
   GetIt.I.registerSingleton<SignDetectionInterpreter>(
     SignDetectionInterpreter(name: "StreetSignDetectionInterpreter")
   );
-  await GetIt.I<SignDetectionInterpreter>().init(1280, 720, 3);
+  await GetIt.I<SignDetectionInterpreter>().init(
+    1280, 720, 3,
+    300, 300, 3
+  );
 
   /// current configuration
   GetIt.I.registerSingleton<Settings>(Settings());
