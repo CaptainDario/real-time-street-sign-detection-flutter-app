@@ -12,7 +12,9 @@ The source code for the flutter app of the DCAITI project: KI-basierte Algorithm
 3. Clone the fork of tflite_flutter_plugin into the plugins folder `git clone https://github.com/CaptainDario/tflite_flutter_plugin plugins/`.
    1. Follow the [install instructions of the plugin](https://github.com/CaptainDario/tflite_flutter_plugin#initial-setup--add-dynamic-libraries-to-your-app)
    2. Get dependencies in the directory of tflite_flutter_plugin `cd plugins/tflite_flutter_plugin; flutter pub get`
-4. Run `cd ../../; flutter pub get` in this app's directory
+4. Clone the fork of tflite_flutter_helper into the plugins folder `git clone https://github.com/CaptainDario/tflite_flutter_helper plugins/`.
+   1. Get dependencies in the directory of tflite_flutter_plugin `cd plugins/tflite_flutter_helper; flutter pub get`
+5. Run `cd ../../; flutter pub get` in this app's directory
 
 Now you should be able to run the app.
 
