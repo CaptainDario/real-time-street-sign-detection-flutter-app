@@ -1,11 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:get_it/get_it.dart';
-import 'package:street_sign_detection/settings.dart';
-import 'package:street_sign_detection/tflite/inference_backend.dart';
+
 
 import 'stats_row.dart';
+import 'package:street_sign_detection/tflite/inference_backend.dart';
 import 'package:street_sign_detection/theme.dart';
-import 'package:street_sign_detection/tflite/stats.dart';
 import 'package:street_sign_detection/ml_models.dart';
 
 
