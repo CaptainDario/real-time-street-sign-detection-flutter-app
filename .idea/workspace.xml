@@ -5,14 +5,10 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="31b12670-d475-4d9f-97b4-69e6a17a4d32" name="Changes" comment="">
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/lib/main.dart" beforeDir="false" afterPath="$PROJECT_DIR$/lib/main.dart" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/lib/tflite/object_detection.dart" beforeDir="false" afterPath="$PROJECT_DIR$/lib/tflite/object_detection.dart" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/lib/ui/home_view.dart" beforeDir="false" afterPath="$PROJECT_DIR$/lib/ui/home_view.dart" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/lib/ui/live_camera_preview.dart" beforeDir="false" afterPath="$PROJECT_DIR$/lib/ui/live_camera_preview.dart" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/lib/ui/object_detection_painter.dart" beforeDir="false" afterPath="$PROJECT_DIR$/lib/ui/object_detection_painter.dart" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/lib/ui/object_detector.dart" beforeDir="false" afterPath="$PROJECT_DIR$/lib/ui/object_detector.dart" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/pubspec.yaml" beforeDir="false" afterPath="$PROJECT_DIR$/pubspec.yaml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/street_sign_detection_app.iml" beforeDir="false" afterPath="$PROJECT_DIR$/street_sign_detection_app.iml" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
