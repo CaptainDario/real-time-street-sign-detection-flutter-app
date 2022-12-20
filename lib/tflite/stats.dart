@@ -1,29 +1,46 @@
+import 'package:flutter/material.dart';
+
+
+
 /// Bundles different elapsed times
-class Stats {
-  /// Total time taken in the isolate where the inference runs
-  int? totalPredictTime;
-
-  /// [totalPredictTime] + communication overhead time
-  /// between main isolate and another isolate
-  int? totalElapsedTime;
-
-  /// Time for which inference runs
-  int? inferenceTime;
+class InferenceStats with ChangeNotifier {
 
   /// Time taken to pre-process the image
   int? preProcessingTime;
 
-  Stats(
-      {
-        this.totalPredictTime,
-        this.totalElapsedTime,
-        this.inferenceTime,
-        this.preProcessingTime
-      }
-    );
+  /// Time for which inference runs
+  int? inferenceTime;
 
-  @override
-  String toString() {
-    return 'Stats{totalPredictTime: $totalPredictTime, totalElapsedTime: $totalElapsedTime, inferenceTime: $inferenceTime, preProcessingTime: $preProcessingTime}';
+  /// Time taken to post-process the output of the tf lite interpreter
+  int? postProcessingTime;
+
+  /// The complete time used inside of the isolate (pre/postprocessing + inference)
+  int? get totalIsolateTime {
+    if(preProcessingTime == null || inferenceTime == null || postProcessingTime == null)
+      return null;
+
+    return preProcessingTime! + inferenceTime! + postProcessingTime!;
   }
+
+  int? get communicationOverhead {
+    if(totalIsolateTime == null || totalTime == null)
+      return null;
+
+    return totalTime! - totalIsolateTime!;
+  }
+    
+
+  /// The complete time for invoking the interpreter this includes the isolate
+  /// communication overhead
+  int? totalTime;
+
+  /// copies the values of the given stats object
+  void copy(InferenceStats stats){
+    preProcessingTime  = stats.preProcessingTime;
+    inferenceTime      = stats.inferenceTime;
+    postProcessingTime = stats.postProcessingTime;
+    totalTime          = stats.totalTime;
+    notifyListeners();
+  }
+
 }

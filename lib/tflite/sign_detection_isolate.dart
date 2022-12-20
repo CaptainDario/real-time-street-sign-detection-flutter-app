@@ -4,6 +4,7 @@ import 'package:async/async.dart';
 import 'package:tflite_flutter/tflite_flutter.dart';
 import 'package:tflite_flutter_helper/tflite_flutter_helper.dart';
 
+import 'package:street_sign_detection/tflite/stats.dart';
 import 'package:street_sign_detection/tflite/sign_detection_data.dart';
 
 
@@ -75,19 +76,34 @@ class SignDetectionIsolate {
     SignDetectionData data = (await mainMessageQueue.next) as SignDetectionData;
     data.setupOutput(interpreter);
 
+    // time measurements
+    InferenceStats inferenceStats = InferenceStats();
+    Stopwatch stopwatch = Stopwatch();
+
     // wait for messages from the main isolate
     await for (final message in mainMessageQueue.rest) {
       
       // stop listening for messages on a null message
       if(message ==  null) break;
 
-
+      // pre processing
+      stopwatch..reset()..start();
       TensorImage processedImg = await data.preProcessRawInput(message);
+      inferenceStats.preProcessingTime = stopwatch.elapsed.inMilliseconds;
 
+      // inference
+      stopwatch..reset()..start();
       data.runInterpreter(interpreter, [processedImg.buffer], data.output);
+      inferenceStats.inferenceTime = stopwatch.elapsed.inMilliseconds;
 
-      sendPort.send(data.postProcessRawOutput());
+      // post processing
+      stopwatch..reset()..start();
+      var out = data.postProcessRawOutput();
+      inferenceStats.postProcessingTime = stopwatch.elapsed.inMilliseconds;
 
+      // send result and stats to main isolate
+      sendPort.send(out);
+      sendPort.send(inferenceStats);
     }
   }
 

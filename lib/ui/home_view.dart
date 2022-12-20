@@ -1,13 +1,16 @@
+import 'package:camera/camera.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
 import 'package:get_it/get_it.dart';
 
 import 'package:street_sign_detection/tflite/object_detection.dart';
+import 'package:street_sign_detection/tflite/stats.dart';
 import 'package:street_sign_detection/theme.dart';
 import 'package:street_sign_detection/ui/bottom_sheet.dart';
 import 'package:street_sign_detection/ui/info_page.dart';
 import 'package:street_sign_detection/ml_models.dart';
-import 'package:street_sign_detection/ui/object_detector.dart';
+import 'package:street_sign_detection/ui/camera_object_detector.dart';
 import 'package:street_sign_detection/settings.dart';
 
 
@@ -39,6 +42,11 @@ class _HomeViewState extends State<HomeView> {
   double bottomSheetMinHeight = 2*8 + 20;
   /// The key to access the bottoms sheets render context
   GlobalKey bottomSheetKey = GlobalKey();
+
+  /// the camera from which the life preview should be shown
+  int selectedCamera = 0;
+
+
 
   @override
   void initState() {
@@ -94,8 +102,9 @@ class _HomeViewState extends State<HomeView> {
       ),
       key: scaffoldKey,
       backgroundColor: dcaitiBlack,
-            children: [
-              CameraObjectDetector(GetIt.I<List<CameraDescription>>()[selectedCamera]),
+      body: Stack(
+        children: [
+          CameraObjectDetector(GetIt.I<List<CameraDescription>>()[selectedCamera]),
 
           // change camera button
           Positioned(
@@ -107,7 +116,14 @@ class _HomeViewState extends State<HomeView> {
                   Icons.cameraswitch,
                   size: 40
                 ),
-                onPressed: () {},
+                onPressed: () {
+                  setState(() {
+                    selectedCamera += 1;
+                    if(selectedCamera == GetIt.I<List<CameraDescription>>().length)
+                      selectedCamera = 0;
+                    print("camera index $selectedCamera");
+                  });
+                },
               ),
             ),
           ),
@@ -116,35 +132,43 @@ class _HomeViewState extends State<HomeView> {
           Positioned(
             bottom: bottomSheetHeight == null ? double.infinity : bottomSheetY,
             width: MediaQuery.of(context).size.width,
-            child: BottomInfoSheet(
-              key: bottomSheetKey,
+            child: ChangeNotifierProvider.value(
+              value: GetIt.I<InferenceStats>(),
+              builder: (context, child) {
+                return BottomInfoSheet(
+                  key: bottomSheetKey,
+                  stats: context.watch<InferenceStats>(),
 
-              mlModel: GetIt.I<Settings>().mlModel,
-              availablemlModels: MLModels.values,
-              onChangedModel: (value) => setState(() {
-                if(value != null)
-                  GetIt.I<Settings>().mlModel = value;
-              }),
+                  mlModel: GetIt.I<Settings>().mlModel,
+                  availablemlModels: MLModels.values,
+                  onChangedModel: (value) => setState(() {
+                    if(value != null)
+                      GetIt.I<Settings>().mlModel = value;
+                  }),
 
-              backend: GetIt.I<Settings>().inferenceBackend,
-              availableBackends: GetIt.I<Settings>().inferenceBackends,
-              onChangedBackend: (backend) => setState(() {
-                if(backend != null)
-                  GetIt.I<Settings>().inferenceBackend = backend;
-              }),
+                  backend: GetIt.I<Settings>().inferenceBackend,
+                  availableBackends: GetIt.I<Settings>().inferenceBackends,
+                  onChangedBackend: (backend) => setState(() {
+                    if(backend != null)
+                      GetIt.I<Settings>().inferenceBackend = backend;
+                  }),
 
-              onDragged: (details) {
-                if(bottomSheetY - details.delta.dy < bottomSheetMinY! || 
-                  bottomSheetY - details.delta.dy > bottomSheetMaxY!)
-                  return;
-                setState(() {
-                  bottomSheetY -= details.delta.dy;
-                });
-              },
+                  onDragged: (details) {
+                    if(bottomSheetY - details.delta.dy < bottomSheetMinY! || 
+                      bottomSheetY - details.delta.dy > bottomSheetMaxY!)
+                      return;
+                    setState(() {
+                      bottomSheetY -= details.delta.dy;
+                    });
+                  },
+                );
+              }
             )
           )
         ],
       )
+        
+      
     );
   }
 }

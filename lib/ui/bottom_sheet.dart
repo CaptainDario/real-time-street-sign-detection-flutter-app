@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:street_sign_detection/tflite/stats.dart';
 
 
 import 'stats_row.dart';
@@ -9,6 +10,9 @@ import 'package:street_sign_detection/ml_models.dart';
 
 
 class BottomInfoSheet extends StatefulWidget {
+
+  /// The inference stats that should be shown in the info sheet
+  final InferenceStats stats;
 
   /// the currently selected TF Lite model
   final MLModels mlModel;
@@ -30,6 +34,7 @@ class BottomInfoSheet extends StatefulWidget {
 
   const BottomInfoSheet(
     {
+      required this.stats,
       required this.mlModel,
       required this.availablemlModels,
       this.onChangedModel,
@@ -66,14 +71,14 @@ class _BottomInfoSheetState extends State<BottomInfoSheet> {
                 child: Icon(Icons.drag_handle_rounded)
               ),
               SizedBox(height: 8,),
-              StatsRow('Inference time:',
-                  '${-10} ms'),
-              StatsRow('Total prediction time:',
-                  '${-50} ms'),
-              StatsRow('Pre-processing time:',
-                  '${-100} ms'),
-              StatsRow('Frame',
-                  '${1280} X ${720}'),
+              StatsRow('Pre-processing time:','${widget.stats.preProcessingTime} ms'),
+              StatsRow('Inference time:', '${widget.stats.inferenceTime} ms'),
+              StatsRow('Pre-processing time:','${widget.stats.postProcessingTime} ms'),
+              StatsRow('Total isolate time:','${widget.stats.totalIsolateTime} ms'),
+              StatsRow('Isolate communication:','${widget.stats.communicationOverhead} ms'),
+              StatsRow('Total prediction time:','${widget.stats.totalTime} ms'),
+              
+              StatsRow('Image size','${1280} X ${720}'),
               
               // ML models
               Row(

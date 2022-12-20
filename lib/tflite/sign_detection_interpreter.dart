@@ -4,8 +4,10 @@ import 'dart:typed_data';
 
 import 'package:tflite_flutter/tflite_flutter.dart';
 import 'package:camera/camera.dart';
+import 'package:tuple/tuple.dart';
 
 import 'sign_detection_isolate.dart';
+import 'package:street_sign_detection/tflite/stats.dart';
 import 'package:street_sign_detection/tflite/interpreter_utils.dart';
 import 'package:street_sign_detection/tflite/object_detection.dart';
 import 'package:street_sign_detection/tflite/sign_detection_data.dart';
@@ -35,10 +37,12 @@ class SignDetectionInterpreter with ChangeNotifier{
   /// The asset path to the used asset for creating the interpreter
   late final String _usedTFLiteAssetPath;
 
-  // the utils for the interpreter's isolate
+  /// the utils for the interpreter's isolate
   SignDetectionIsolate? _inferenceIsolate;
   /// The interpreter instance
   late final SignDetectionData signDetectionData;
+  /// The statstics of the last succesful inference
+  InferenceStats? inferenceStats;
 
   /// Message that it printed when the instance accessed but was not initialized
   String _notInitializedMessage =
@@ -104,17 +108,22 @@ class SignDetectionInterpreter with ChangeNotifier{
   }
 
   /// Process the input, runs inference on it and returns the processed output
-  Future<List<ObjectDetection>> runInference(CameraImage input) async {
+  Future<Tuple2<List<ObjectDetection>, InferenceStats>> runInference(CameraImage input) async {
     if(!wasInitialized) throw Exception(_notInitializedMessage);
+
+    Stopwatch stopwatch = Stopwatch()..start();
 
     // send the input to the inference isolate and wait for the response
     _inferenceIsolate!.sendPort.send(input);
 
+    // receive detections and stats + emit changed signal
     List<ObjectDetection>_detections =
       await _inferenceIsolate!.messageQueue.next;
-    //_detections.then((value) => notifyListeners());
+    InferenceStats stats = await _inferenceIsolate!.messageQueue.next;
+    stats.totalTime = stopwatch.elapsed.inMilliseconds;
+    notifyListeners();
 
-    return _detections;
+    return Tuple2(_detections, stats);
   }
 
   /// Frees all used resources
