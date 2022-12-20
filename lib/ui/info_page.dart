@@ -25,17 +25,19 @@ class InfoPage extends StatelessWidget {
           children: [
             Container(
               height: MediaQuery.of(context).size.height*0.1,
+              width: MediaQuery.of(context).size.width * 0.95,
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceAround,
                 children: [
                   Container(
                     height: 50,
+                    constraints: BoxConstraints(maxWidth: MediaQuery.of(context).size.width*0.3),
                     child: Image.asset("assets/icon/tu.png"),
                   ),
                   Container(
                     height: 50,
+                    constraints: BoxConstraints(maxWidth: MediaQuery.of(context).size.width*0.6),
                     child: Image.asset("assets/icon/dcaiti.png"),
-                    //color: Colors.white,
                   )
                 ],
               ),

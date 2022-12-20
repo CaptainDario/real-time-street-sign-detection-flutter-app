@@ -73,7 +73,7 @@ class _BottomInfoSheetState extends State<BottomInfoSheet> {
               SizedBox(height: 8,),
               StatsRow('Pre-processing time:','${widget.stats.preProcessingTime} ms'),
               StatsRow('Inference time:', '${widget.stats.inferenceTime} ms'),
-              StatsRow('Pre-processing time:','${widget.stats.postProcessingTime} ms'),
+              StatsRow('Post-processing time:','${widget.stats.postProcessingTime} ms'),
               StatsRow('Total isolate time:','${widget.stats.totalIsolateTime} ms'),
               StatsRow('Isolate communication:','${widget.stats.communicationOverhead} ms'),
               StatsRow('Total prediction time:','${widget.stats.totalTime} ms'),
@@ -81,47 +81,52 @@ class _BottomInfoSheetState extends State<BottomInfoSheet> {
               StatsRow('Image size','${1280} X ${720}'),
               
               // ML models
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: widget.availablemlModels.map((e) => 
-                  Row(
-                    children: 
-                    [
-                      Radio<MLModels>(
-                        value: e,
-                        groupValue: widget.mlModel,
-                        activeColor: dcaitiGreen,
-                        onChanged: (MLModels? value) {
-                          if(widget.onChangedModel != null)
-                            widget.onChangedModel!(value);
-                        },
-                      ),
-                      Text(e.name),
-                    ]
-                  ,)
-                ).toList()                 
+              SingleChildScrollView(
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: widget.availablemlModels.map((e) => 
+                    Row(
+                      children: 
+                      [
+                        Radio<MLModels>(
+                          value: e,
+                          groupValue: widget.mlModel,
+                          activeColor: dcaitiGreen,
+                          onChanged: (MLModels? value) {
+                            if(widget.onChangedModel != null)
+                              widget.onChangedModel!(value);
+                          },
+                        ),
+                        Text(e.name),
+                      ]
+                    ,)
+                  ).toList()                 
+                ),
               ),
 
               // Inference backends
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: widget.availableBackends.map((e) => 
-                  Row(
-                    children: 
-                    [
-                      Radio<InferenceBackend>(
-                        value: e,
-                        groupValue: widget.backend,
-                        activeColor: dcaitiGreen,
-                        onChanged: (InferenceBackend? value) {
-                          if(widget.onChangedBackend != null)
-                            widget.onChangedBackend!(value);
-                        }
-                      ),
-                      Text(e.name),
-                    ]
-                  ,)
-                ).toList()                 
+              SingleChildScrollView(
+                scrollDirection: Axis.horizontal,
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: widget.availableBackends.map((e) => 
+                    Row(
+                      children: 
+                      [
+                        Radio<InferenceBackend>(
+                          value: e,
+                          groupValue: widget.backend,
+                          activeColor: dcaitiGreen,
+                          onChanged: (InferenceBackend? value) {
+                            if(widget.onChangedBackend != null)
+                              widget.onChangedBackend!(value);
+                          }
+                        ),
+                        Text(e.name),
+                      ]
+                    ,)
+                  ).toList()                 
+                ),
               ),
             ],
           ),
