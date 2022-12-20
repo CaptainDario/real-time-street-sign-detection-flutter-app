@@ -16,10 +16,6 @@ The source code for the flutter app of the DCAITI project: KI-basierte Algorithm
 
 Now you should be able to run the app.
 
-## FAQ
-
-1. If you have a problem with the `tflite_flutter_helper`-plugin copy the `TfliteFlutterHelperPlugin.kt` into the pubcache folder of it.
-
 ## Credits
 
 [icon](https://de.m.wikipedia.org/wiki/Bildtafel_der_Verkehrszeichen_in_der_Bundesrepublik_Deutschland_seit_2017#/media/Datei%3AZeichen_114_-_Schleuder-_oder_Rutschgefahr%2C_StVO_2013.svg)
