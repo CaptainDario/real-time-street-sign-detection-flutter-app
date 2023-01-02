@@ -45,9 +45,11 @@ dependencies:
 
 dependency_overrides:
     tflite_flutter:
-      path: plugins/tflite_flutter_plugin
+      git:
+        url: https://github.com/CaptainDario/tflite_flutter_plugin
     tflite_flutter_helper:
-      path: plugins/tflite_flutter_helper/
+      git:
+        url: https://github.com/CaptainDario/tflite_flutter_helper
 
 dev_dependencies:
   flutter_test:
