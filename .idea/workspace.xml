@@ -5,10 +5,15 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="31b12670-d475-4d9f-97b4-69e6a17a4d32" name="Changes" comment="">
-      <change beforePath="$PROJECT_DIR$/lib/ui/home_view.dart" beforeDir="false" afterPath="$PROJECT_DIR$/lib/ui/home_view.dart" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/lib/ui/live_camera_preview.dart" beforeDir="false" afterPath="$PROJECT_DIR$/lib/ui/live_camera_preview.dart" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/lib/ui/object_detector.dart" beforeDir="false" afterPath="$PROJECT_DIR$/lib/ui/object_detector.dart" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/pubspec.yaml" beforeDir="false" afterPath="$PROJECT_DIR$/pubspec.yaml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/libraries/Dart_Packages.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/libraries/Dart_Packages.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/README.md" beforeDir="false" afterPath="$PROJECT_DIR$/README.md" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/android/app/build.gradle" beforeDir="false" afterPath="$PROJECT_DIR$/android/app/build.gradle" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/android/app/src/main/jniLibs/arm64-v8a/libtensorflowlite_c.so" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/android/app/src/main/jniLibs/armeabi-v7a/libtensorflowlite_c.so" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/android/app/src/main/jniLibs/x86/libtensorflowlite_c.so" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/android/app/src/main/jniLibs/x86_64/libtensorflowlite_c.so" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/street_sign_detection_app.iml" beforeDir="false" afterPath="$PROJECT_DIR$/street_sign_detection_app.iml" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -40,6 +45,7 @@
     <property name="dart.analysis.tool.window.force.activate" value="true" />
     <property name="dart.analysis.tool.window.visible" value="false" />
     <property name="last_opened_file_path" value="$PROJECT_DIR$" />
+    <property name="settings.editor.selected.configurable" value="advanced.settings" />
     <property name="show.migrate.to.gradle.popup" value="false" />
   </component>
   <component name="SpellCheckerSettings" RuntimeDictionaries="0" Folders="0" CustomDictionaries="0" DefaultDictionary="application-level" UseSingleDictionary="true" transferred="true" />

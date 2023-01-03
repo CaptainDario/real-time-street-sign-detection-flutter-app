@@ -123,6 +123,24 @@
       <excludeFolder url="file://$MODULE_DIR$/macos/Flutter/ephemeral/.symlinks/plugins/tflite_flutter_helper/example/bert_question_answer/.pub" />
       <excludeFolder url="file://$MODULE_DIR$/macos/Flutter/ephemeral/.symlinks/plugins/tflite_flutter_helper/example/bert_question_answer/.dart_tool" />
       <excludeFolder url="file://$MODULE_DIR$/macos/Flutter/ephemeral/.symlinks/plugins/tflite_flutter_helper/example/bert_question_answer/build" />
+      <excludeFolder url="file://$MODULE_DIR$/macos/Flutter/ephemeral/.symlinks/plugins/device_info_plus/.pub" />
+      <excludeFolder url="file://$MODULE_DIR$/macos/Flutter/ephemeral/.symlinks/plugins/device_info_plus/.dart_tool" />
+      <excludeFolder url="file://$MODULE_DIR$/macos/Flutter/ephemeral/.symlinks/plugins/device_info_plus/build" />
+      <excludeFolder url="file://$MODULE_DIR$/windows/flutter/ephemeral/.plugin_symlinks/device_info_plus/.pub" />
+      <excludeFolder url="file://$MODULE_DIR$/windows/flutter/ephemeral/.plugin_symlinks/device_info_plus/build" />
+      <excludeFolder url="file://$MODULE_DIR$/windows/flutter/ephemeral/.plugin_symlinks/device_info_plus/.dart_tool" />
+      <excludeFolder url="file://$MODULE_DIR$/linux/flutter/ephemeral/.plugin_symlinks/device_info_plus/.pub" />
+      <excludeFolder url="file://$MODULE_DIR$/linux/flutter/ephemeral/.plugin_symlinks/device_info_plus/.dart_tool" />
+      <excludeFolder url="file://$MODULE_DIR$/linux/flutter/ephemeral/.plugin_symlinks/device_info_plus/build" />
+      <excludeFolder url="file://$MODULE_DIR$/macos/Flutter/ephemeral/.symlinks/plugins/device_info_plus/example/build" />
+      <excludeFolder url="file://$MODULE_DIR$/macos/Flutter/ephemeral/.symlinks/plugins/device_info_plus/example/.dart_tool" />
+      <excludeFolder url="file://$MODULE_DIR$/macos/Flutter/ephemeral/.symlinks/plugins/device_info_plus/example/.pub" />
+      <excludeFolder url="file://$MODULE_DIR$/linux/flutter/ephemeral/.plugin_symlinks/device_info_plus/example/.dart_tool" />
+      <excludeFolder url="file://$MODULE_DIR$/linux/flutter/ephemeral/.plugin_symlinks/device_info_plus/example/.pub" />
+      <excludeFolder url="file://$MODULE_DIR$/linux/flutter/ephemeral/.plugin_symlinks/device_info_plus/example/build" />
+      <excludeFolder url="file://$MODULE_DIR$/windows/flutter/ephemeral/.plugin_symlinks/device_info_plus/example/build" />
+      <excludeFolder url="file://$MODULE_DIR$/windows/flutter/ephemeral/.plugin_symlinks/device_info_plus/example/.pub" />
+      <excludeFolder url="file://$MODULE_DIR$/windows/flutter/ephemeral/.plugin_symlinks/device_info_plus/example/.dart_tool" />
     </content>
     <orderEntry type="sourceFolder" forTests="false" />
     <orderEntry type="library" name="Dart SDK" level="project" />
