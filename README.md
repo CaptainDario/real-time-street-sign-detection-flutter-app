@@ -4,6 +4,14 @@ The source code for the flutter app of the DCAITI project: "KI-basierte Algorith
 
 ## Installation
 
+### From release
+
+*Note: releases are only available for android*
+Head over to the [releases section](https://github.com/CaptainDario/street_sign_detection_app/releases/latest) and download the latest release for android, and install it.
+You should be good to go!
+
+### From source
+
 **Note** Flutter needs to be installed on this system.
 
 1. Clone this repo `git clone https://github.com/CaptainDario/street_sign_detection_app`
