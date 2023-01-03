@@ -1,4 +1,5 @@
-<img src="assets/icon/icon.png" height=75> <img src="assets/icon/dcaiti.png" height=65> 
+<img class="center" src="assets/icon/icon.png" height=75>
+<img class="center" src="assets/icon/dcaiti.png" height=75>
 
 The source code for the flutter app of the DCAITI project: "KI-basierte Algorithmen zur Objektdetektion und Klassifizierung für mobile Plattformen"
 
@@ -25,6 +26,11 @@ Now you should be able to run the app:
 ## Sample video
 
 TODO: add a sample video here
+
+## Disclaimer
+
+This is a proof of concept implementation of a cross platform tensorflow lite based street sign detection app.
+Its purpose is to check the viability of on-device machine learning on off-the-shelf mobile hardware for autonomous driving. This means that the app or parts of it are not meant to be used in production and are not tested with a wide range of devices. Therefore, expect bugs and crashes on untested devices.
 
 ## Credits
 
