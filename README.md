@@ -1,17 +1,22 @@
+<img src="assets/icon/icon.png" height=75> <img src="assets/icon/dcaiti.png" height=65> 
 
-# DCAITI-street-sign-detection-app
-
-The source code for the flutter app of the DCAITI project: KI-basierte Algorithmen zur Objektdetektion und Klassifizierung für mobile Plattformen
+The source code for the flutter app of the DCAITI project: "KI-basierte Algorithmen zur Objektdetektion und Klassifizierung für mobile Plattformen"
 
 ## Installation
 
 **Note** Flutter needs to be installed on this system.
 
 1. Clone this repo `git clone https://github.com/CaptainDario/street_sign_detection_app`
-2. Change in this directory `cd street_sign_detection_app`
+2. Change in its directory `cd street_sign_detection_app`
 3. Run `flutter pub get` in this app's directory
 
-Now you should be able to run the app.
+Now you should be able to run the app:
+
+`flutter run`
+
+## Sample video
+
+TODO: add a sample video here
 
 ## Credits
 
