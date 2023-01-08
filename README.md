@@ -1,6 +1,7 @@
 <img class="center" src="assets/icon/icon.png" height=75><img class="center" src="assets/icon/dcaiti.png" height=75>
 
-The source code for the flutter app of the DCAITI project: "KI-basierte Algorithmen zur Objektdetektion und Klassifizierung für mobile Plattformen"
+The source code for the flutter app of the DCAITI project: "KI-basierte Algorithmen zur Objektdetektion und Klassifizierung für mobile Plattformen".
+The Machine learning project can be found [here](https://github.com/CaptainDario/street_sign_detection_ml).
 
 ## Installation
 
