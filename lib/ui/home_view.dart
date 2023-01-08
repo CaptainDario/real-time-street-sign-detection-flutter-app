@@ -1,13 +1,19 @@
-import 'package:flutter/cupertino.dart';
+import 'package:camera/camera.dart';
 import 'package:flutter/material.dart';
-import 'package:object_detection/ml_models.dart';
-import 'package:object_detection/tflite/recognition.dart';
-import 'package:object_detection/tflite/stats.dart';
-import 'package:object_detection/ui/box_widget.dart';
-import 'package:object_detection/ui/camera_view_singleton.dart';
+import 'package:provider/provider.dart';
 
-import 'package:object_detection/theme.dart';
-import 'camera_view.dart';
+import 'package:get_it/get_it.dart';
+
+import 'package:street_sign_detection/tflite/object_detection.dart';
+import 'package:street_sign_detection/tflite/stats.dart';
+import 'package:street_sign_detection/theme.dart';
+import 'package:street_sign_detection/ui/bottom_sheet.dart';
+import 'package:street_sign_detection/ui/info_page.dart';
+import 'package:street_sign_detection/ml_models.dart';
+import 'package:street_sign_detection/ui/camera_object_detector.dart';
+import 'package:street_sign_detection/settings.dart';
+
+
 
 /// [HomeView] stacks [CameraView] and [BoxWidget]s with bottom sheet for stats
 class HomeView extends StatefulWidget {
@@ -17,168 +23,185 @@ class HomeView extends StatefulWidget {
 
 class _HomeViewState extends State<HomeView> {
   /// Results to draw bounding boxes
-  List<Recognition> results;
-
-  /// Realtime stats
-  Stats stats;
+  List<ObjectDetection> results = [];
 
   /// Scaffold Key
   GlobalKey<ScaffoldState> scaffoldKey = GlobalKey();
-
-  bool statsOpen = false;
-
+  /// currently selected ML model
   MLModels mlModel = MLModels.YOLOV5;
+
+  /// the current y position of the bottom sheet
+  double bottomSheetY = 0;
+  /// The height of the bottom sheet
+  double? bottomSheetHeight;
+  /// The minimum y value until where the bottom sheet can be dragged
+  double? bottomSheetMinY;
+  /// The maximumy value until where the bottom sheet can be draggeds
+  double? bottomSheetMaxY;
+  /// The minimum size of the bottom sheet
+  double bottomSheetMinHeight = 2*8 + 20;
+  /// The key to access the bottoms sheets render context
+  GlobalKey bottomSheetKey = GlobalKey();
+
+  /// the camera from which the life preview should be shown
+  int noSelectedCamera = 0;
+  /// The currently used camera controller
+  CameraController? currentCameraController;
+  /// If the preview is currently running
+  bool isPreviewing = true;
+
+
+  @override
+  void initState() {
+    super.initState();
+    // get the height of the bottom sheet from the last rendered frame and
+    // max and min drag values
+    WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
+      setState(() {
+        bottomSheetHeight = bottomSheetKey.currentContext!.size!.height;
+        bottomSheetY = -bottomSheetHeight! + bottomSheetMinHeight;
+        bottomSheetMinY = -bottomSheetHeight! + bottomSheetMinHeight;
+        bottomSheetMaxY = 0;
+      });
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      
       appBar: AppBar(
         titleSpacing: 0,
         backgroundColor: dcaitiBlue,
-        title: Row(
-          children: [
-            Expanded(
-              child: AspectRatio(
-                aspectRatio: 1,
-                child: Container(
-                  color: dcaitiGreen,
-                  child: IconButton(
-                    onPressed: () => setState(() => statsOpen = !statsOpen), 
-                    icon: Icon(Icons.info)
-                  ),
+        title: Container(
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.centerLeft,
+              end: Alignment.centerRight,
+              colors: [dcaitiGreen.withAlpha(50), dcaitiBlue, dcaitiBlue]),
+          ),
+          child: Row(
+            children: [
+              Container(
+                height: AppBar().preferredSize.height,
+                width: AppBar().preferredSize.height,
+                color: dcaitiGreen,
+                child: IconButton(
+                  onPressed: () => Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (context) => InfoPage()),
+                  ), 
+                  icon: Icon(Icons.info)
                 ),
               ),
-            ),
-            Spacer(),
-            Text("DCAITI - Street Sign Detection "),
-          ],
+              Spacer(),
+              Container(
+                height: AppBar().preferredSize.height*0.8,
+                child: Image.asset("assets/icon/dcaiti.png")
+              ),
+            ],
+          ),
         ),
       ),
       key: scaffoldKey,
-      backgroundColor: Colors.black,
+      backgroundColor: dcaitiBlack,
       body: Stack(
-        children: <Widget>[
-          // Camera View
-          Center(
-            child: CameraView(resultsCallback, statsCallback)
+        children: [
+          CameraObjectDetector(
+            GetIt.I<List<CameraDescription>>()[noSelectedCamera],
+            onCameraControllerCreated: (cameraController) =>
+              currentCameraController = cameraController,
           ),
 
-          // Bounding boxes
-          Align(
-            alignment: Alignment.topCenter,
-            child: boundingBoxes(results)
+          // change camera button
+          Positioned(
+            bottom: 50 + (bottomSheetHeight == null ? 0 : bottomSheetMinHeight),
+            right: MediaQuery.of(context).size.width / 2 - 40/2,
+            child: Container(
+              child: IconButton(
+                icon: Icon(
+                  isPreviewing ? Icons.videocam_off : Icons.videocam,
+                  size: 40
+                ),
+                onPressed: () {
+                  setState(() {
+                    if(currentCameraController != null && isPreviewing){
+                      currentCameraController!.pausePreview();
+                      isPreviewing = false;
+                    }
+                    else if(currentCameraController != null && !isPreviewing){
+                      currentCameraController!.resumePreview();
+                      isPreviewing = true;
+                    }
+                  });
+                },
+              ),
+            ),
+          ),
+
+          // change camera button
+          Positioned(
+            bottom: 50 + (bottomSheetHeight == null ? 0 : bottomSheetMinHeight),
+            right: 50,
+            child: Container(
+              child: IconButton(
+                icon: Icon(
+                  Icons.cameraswitch,
+                  size: 40
+                ),
+                onPressed: () {
+                  setState(() {
+                    noSelectedCamera += 1;
+                    if(noSelectedCamera == GetIt.I<List<CameraDescription>>().length)
+                      noSelectedCamera = 0;
+                    print("camera index $noSelectedCamera");
+                  });
+                },
+              ),
+            ),
           ),
 
           // Bottom Sheet
-          stats != null
-            ? Positioned(
-              top: statsOpen ? null : MediaQuery.of(context).size.height - 50,
-              bottom: statsOpen ? 0 : null,
-              width: MediaQuery.of(context).size.width,
-              child: Container(
-                decoration: BoxDecoration(
-                  color: dcaitiBlue,
-                  borderRadius: BorderRadius.only(topLeft: Radius.circular(8), topRight: Radius.circular(8))
-                ),
-                child: Padding(
-                  padding: const EdgeInsets.all(8.0),
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    children: [
-                      StatsRow('Inference time:',
-                          '${stats.inferenceTime} ms'),
-                      StatsRow('Total prediction time:',
-                          '${stats.totalElapsedTime} ms'),
-                      StatsRow('Pre-processing time:',
-                          '${stats.preProcessingTime} ms'),
-                      StatsRow('Frame',
-                          '${CameraViewSingleton.inputImageSize?.width} X ${CameraViewSingleton.inputImageSize?.height}'),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [MLModels.YOLOV5, MLModels.YOLOV7, MLModels.CascadeRCNN].map((e) => 
-                          Row(
-                            children: 
-                            [
-                              Radio<MLModels>(
-                                value: e,
-                                groupValue: mlModel,
-                                activeColor: dcaitiGreen,
-                                onChanged: (MLModels value) {
-                                  setState(() {
-                                    mlModel = value;
-                                  });
-                                },
-                              ),
-                              Text(e.name),
-                            ]
-                          ,)
-                        ).toList()                 
-                      ),
-                      Text(
-                        "\n\nThis project is a research coorporation between DCAITI and the TU Berlin.\n"
-                        "Developers: Dario Klepoch, Marvin Beese, Clemens Lotthermoser",
-                        textScaleFactor: 0.8,
-                      )
-                    ],
-                  ),
-                ),
-              ),
+          Positioned(
+            bottom: bottomSheetHeight == null ? double.infinity : bottomSheetY,
+            width: MediaQuery.of(context).size.width,
+            child: ChangeNotifierProvider.value(
+              value: GetIt.I<InferenceStats>(),
+              builder: (context, child) {
+                return BottomInfoSheet(
+                  key: bottomSheetKey,
+                  stats: context.watch<InferenceStats>(),
+
+                  mlModel: GetIt.I<Settings>().mlModel,
+                  availablemlModels: MLModels.values,
+                  onChangedModel: (value) => setState(() {
+                    if(value != null)
+                      GetIt.I<Settings>().mlModel = value;
+                  }),
+
+                  backend: GetIt.I<Settings>().inferenceBackend,
+                  availableBackends: GetIt.I<Settings>().inferenceBackends,
+                  onChangedBackend: (backend) => setState(() {
+                    if(backend != null)
+                      GetIt.I<Settings>().inferenceBackend = backend;
+                  }),
+
+                  onDragged: (details) {
+                    if(bottomSheetY - details.delta.dy < bottomSheetMinY! || 
+                      bottomSheetY - details.delta.dy > bottomSheetMaxY!)
+                      return;
+                    setState(() {
+                      bottomSheetY -= details.delta.dy;
+                    });
+                  },
+                );
+              }
             )
-          : SizedBox()
+          )
         ],
-      ),
-    );
-  }
-
-  /// Returns Stack of bounding boxes
-  Widget boundingBoxes(List<Recognition> results) {
-    if (results == null) {
-      return Container();
-    }
-    return Stack(
-      children: results
-          .map((e) => BoxWidget(
-                result: e,
-              ))
-          .toList(),
-    );
-  }
-
-  /// Callback to get inference results from [CameraView]
-  void resultsCallback(List<Recognition> results) {
-    setState(() {
-      this.results = results;
-    });
-  }
-
-  /// Callback to get inference stats from [CameraView]
-  void statsCallback(Stats stats) {
-    setState(() {
-      this.stats = stats;
-    });
-  }
-
-  static const BOTTOM_SHEET_RADIUS = Radius.circular(24.0);
-  static const BORDER_RADIUS_BOTTOM_SHEET = BorderRadius.only(
-      topLeft: BOTTOM_SHEET_RADIUS, topRight: BOTTOM_SHEET_RADIUS);
-}
-
-/// Row for one Stats field
-class StatsRow extends StatelessWidget {
-  final String left;
-  final String right;
-
-  StatsRow(this.left, this.right);
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 8.0),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [Text(left), Text(right)],
-      ),
+      )
+        
+      
     );
   }
 }
