@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'dart:typed_data';
+import 'package:get_it/get_it.dart';
+import 'package:street_sign_detection/settings.dart';
 
 import 'package:tflite_flutter/tflite_flutter.dart';
 import 'package:camera/camera.dart';
@@ -77,12 +78,13 @@ class SignDetectionInterpreter with ChangeNotifier{
     signDetectionData = SignDetectionData(
       inputImageHeight, inputImageWidth, inputImagechannels,
       modelInputWidth, modelInputHeight, modelInputChannels, 
-      await loadLabels());
+      await loadLabels()
+    );
     signDetectionData.setupOutput(await Interpreter.fromAsset(_usedTFLiteAssetPath));
 
     // find the best available backend and load the model
-    interpreter = await Interpreter.fromAsset(tfLiteAssetPath);
-    await initOptimalInterpreter(
+    /*
+    var iB = (await getBestBackend(
       _usedTFLiteAssetPath,
       signDetectionData.generateMockInput(),
       signDetectionData.output,
@@ -91,9 +93,16 @@ class SignDetectionInterpreter with ChangeNotifier{
           interpreter,
           input as List<ByteBuffer>,
           output as Map<int, Object>
-        )
+        ),
+      iterations: 10,
+      exclude: [GetIt.I<Settings>().inferenceBackend]
+    )).entries.toList()..sort(((a, b) => a.value.compareTo(b.value)));
+    */
+    debugPrint(GetIt.I<Settings>().inferenceBackend.name);
+    interpreter = await initInterpreterFromBackend(
+      GetIt.I<Settings>().inferenceBackend, 
+      _usedTFLiteAssetPath
     );
-
     // create and setup isolate
     _inferenceIsolate = SignDetectionIsolate();
     await _inferenceIsolate?.start(interpreter.address, signDetectionData);

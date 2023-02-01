@@ -21,7 +21,7 @@ class Settings with ChangeNotifier{
   ];
 
   List<InferenceBackend> inferenceBackendsIos = [
-    InferenceBackend.CoreML, InferenceBackend.Metal, InferenceBackend.XNNPack
+    InferenceBackend.CoreML2, InferenceBackend.Metal, InferenceBackend.XNNPack
   ];
 
 
