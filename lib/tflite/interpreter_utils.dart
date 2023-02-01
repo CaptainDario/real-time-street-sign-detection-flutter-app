@@ -1,7 +1,3 @@
-import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
-
-import 'package:device_info_plus/device_info_plus.dart';
 import 'package:tflite_flutter/tflite_flutter.dart';
 import 'package:universal_io/io.dart';
 
@@ -13,6 +9,11 @@ import 'inference_backend.dart';
 /// For this a valid `input`, `output` and function `runInterpreter` (defines
 /// how to run the given TF Lite model at `tfLiteAssetPath)` needs to be provided
 /// With `exclude` certain delegates can be excluded.
+/// `iterations` denotes how many times the time for running inference should be
+/// measured.
+/// A map containing the backends with their
+/// time is returned. If a backend is not included that means that this backend
+/// is not available on this device with this model.
 /// 
 /// Delegate support and order: 
 /// * iOS    : CoreML > Metal > XNNPack > CPU <br/>
@@ -20,250 +21,387 @@ import 'inference_backend.dart';
 /// * Windows: GPU (OpenCL) > XNNPack > CPU <br/>
 /// * Mac    : GPU (OpenCL) > XNNPack > CPU <br/>
 /// * Linux  : GPU (OpenCL) > XNNPack > CPU <br/>
-Future<Interpreter> initOptimalInterpreter(
+Future<Map<InferenceBackend, double>> getBestBackend(
   String tfLiteAssetPath,
   Object input,
   Object output,
   void Function(Interpreter interpreter, Object input, Object output) runInterpreter,
   {
-    List<InferenceBackend>? exclude
+    List<InferenceBackend> exclude = const [],
+    int iterations = 1
   }
-) async {
+  ) async 
+{
 
-  /// TODO use the exclude parameter
+  Map<InferenceBackend, double> backendStats;
 
-  Interpreter interpreter;
-
+  
   if (Platform.isAndroid) {
-    interpreter = await _initInterpreterAndroid(
+    backendStats = await _testInterpreterAndroid(
       tfLiteAssetPath,
-      (Interpreter interpreter) => runInterpreter(interpreter, input, output)
+      (Interpreter interpreter) => runInterpreter(interpreter, input, output),
+      exclude: exclude,
+      iterations: iterations
     );
   }
-  /*
+  
   else if (Platform.isIOS) {
-    interpreter = await _initInterpreterIOS();
+    backendStats = await _testInterpreterIOS(
+      tfLiteAssetPath,
+      (Interpreter interpreter) => runInterpreter(interpreter, input, output),
+      exclude: exclude,
+      iterations: iterations
+    );
   }
   else if(Platform.isWindows) {
-    interpreter = await _initInterpreterWindows();
+    backendStats = await _testInterpreterWindows(
+      tfLiteAssetPath,
+      (Interpreter interpreter) => runInterpreter(interpreter, input, output),
+      exclude: exclude,
+      iterations: iterations
+    );
   }
   else if(Platform.isLinux) {
-    interpreter = await _initInterpreterLinux();
+    backendStats = await _testInterpreterLinux(
+      tfLiteAssetPath,
+      (Interpreter interpreter) => runInterpreter(interpreter, input, output),
+      exclude: exclude,
+      iterations: iterations
+    );
   }
   else if(Platform.isMacOS) {
-    interpreter = await _initInterpreterMac();
+    backendStats = await _testInterpreterMac(
+      tfLiteAssetPath,
+      (Interpreter interpreter) => runInterpreter(interpreter, input, output),
+      exclude: exclude,
+      iterations: iterations
+    );
   }
-  */
   else {
-    throw PlatformException(code: "Platform not supported.");
-  }
-
-  return interpreter;
-}
-
-
-/// Initializes the TFLite interpreter on android.
-///
-/// Uses either NNAPI, GPU, XNNPack or CPU delegate
-Future<Interpreter> _initInterpreterAndroid(
-    String assetPath,
-    void Function(Interpreter interpreter) runInterpreter,
-  ) async {
-
-  Interpreter interpreter;
-
-  // get platform information
-  DeviceInfoPlugin deviceInfo = DeviceInfoPlugin();
-  AndroidDeviceInfo androidInfo = await deviceInfo.androidInfo;
-
-  /// check that the device is not running on an emulator
-  if(androidInfo.isPhysicalDevice){
-    // try NNAPI delegate
-    try{
-      interpreter = await _nnapiInterpreter(assetPath);
-      runInterpreter(interpreter);
-      debugPrint("Interpreter uses NNAPI delegate");
-    }
-    // on exception try GPU delegate
-    catch (e){ 
-      try {
-        interpreter = await _gpuInterpreter(assetPath);
-        runInterpreter(interpreter);
-        debugPrint("Interpreter uses GPU v2 delegate");
-      }
-      // on exception try XNNPack CPU delegate
-      catch (e){
-        try{
-          interpreter = await _xxnPackInterpreter(assetPath);
-          runInterpreter(interpreter);
-          debugPrint("Interpreter uses XNNPack delegate");
-        }
-        // on exception use CPU delegate
-        catch (e) {
-          interpreter = await _cpuInterpreter(assetPath);
-          runInterpreter(interpreter);
-          debugPrint("Interpreter uses CPU");
-        }
-      }
-    }
-  }
-  // if emulator only allow cpu inference
-  else{
-    interpreter = await _cpuInterpreter(assetPath);
-  }
-
-  return interpreter;
-}
-
-/*
-/// Initializes the TFLite interpreter on iOS.
-///
-/// Uses either CoreML, Metal, XNNPack or CPU delegate
-Future<Interpreter> _initInterpreterIOS() async {
-
-  Interpreter interpreter;
-
-  // get platform information
-  //DeviceInfoPlugin deviceInfo = DeviceInfoPlugin();
-  //IosDeviceInfo iosInfo = await deviceInfo.iosInfo;
-
-  // try CoreML delegate
-  try{
-    interpreter = await _coreMLInterpreterIOS();
-    runInterpreter(input, output);
-    debugPrint("Interpreter uses CoreML delegate");
-  }
-  // on exception try Metal delegate
-  catch (e){ 
-    try {
-      interpreter = await _metalInterpreterIOS();
-      runInterpreter(input, output);
-      debugPrint("Interpreter uses Metal delegate");
-    }
-    // on exception use XNNPack CPU delegate
-    catch (e){
-      try{
-        interpreter = await _xxnPackInterpreter();
-        runInterpreter(input, output);
-        debugPrint("Interpreter uses XNNPack delegate");
-      }
-      // on exception use CPU delegate
-      catch (e) {
-        interpreter = await _cpuInterpreter();
-        runInterpreter(input, output);
-        debugPrint("Interpreter uses CPU");
-      }
-    }
+    throw Exception("Platform not supported.");
   }
   
-  return interpreter;
 
+  return backendStats;
 }
+
+/// Instantiates an interpereter using the given TF Lite model asset and 
+/// backend
+Future<Interpreter> initInterpreterFromBackend(
+  InferenceBackend inferenceBackend,
+  String assetPath
+  ) async
+{
+  if(inferenceBackend == InferenceBackend.CPU){
+    return _cpuInterpreter(assetPath);
+  }
+  else if(inferenceBackend == InferenceBackend.XNNPack){
+    return await _xxnPackInterpreter(assetPath);
+  }
+  else if(inferenceBackend == InferenceBackend.GPU){
+    return await _gpuInterpreter(assetPath);
+  }
+  else if(inferenceBackend == InferenceBackend.NNApi){
+    return await _nnapiInterpreter(assetPath);
+  }
+  else if(inferenceBackend == InferenceBackend.Metal){
+    return await _metalInterpreterIOS(assetPath);
+  }
+  else if(inferenceBackend == InferenceBackend.CoreML2){
+    return await _coreMLInterpreterIOS(assetPath, CoreMLVersion: 2);
+  }
+  else if(inferenceBackend == InferenceBackend.CoreML3){
+    return await _coreMLInterpreterIOS(assetPath, CoreMLVersion: 3);
+  }
+  else{
+    throw Exception("Unknown inference backend");
+  }
+}
+
+/// Initializes the TFLite interpreter on android. Uses either NNAPI, GPU,
+/// XNNPack or CPU delegate. For each backend an interpreter is created and
+/// the time to run inference measured. 
+/// 
+/// See `initOptimalInterpreter()` for parameter usage
+Future<Map<InferenceBackend, double>> _testInterpreterAndroid(
+  String assetPath,
+  void Function(Interpreter interpreter) runInterpreter,
+  {
+    List<InferenceBackend> exclude = const [],
+    int iterations = 1
+  }
+  ) async 
+{
+
+  Map<InferenceBackend, double> inferenceBackend = {}; Stopwatch s = Stopwatch();
+  Function testBackend = (Interpreter interpreter, InferenceBackend i){
+    s.start(); runInterpreter(interpreter); s.stop();
+    inferenceBackend.putIfAbsent(i, () => 0);
+    inferenceBackend[i] =
+      inferenceBackend[i]! + s.elapsed.inMilliseconds / iterations;
+    s.reset();
+  };
+
+  for (var i = 0; i < iterations; i++) {
+    // NNAPI delegate
+    if(!exclude.contains(InferenceBackend.NNApi)){
+      try{
+        Interpreter interpreter = await _nnapiInterpreter(assetPath);
+        testBackend(interpreter, InferenceBackend.NNApi);
+      }
+      catch (e){}
+    }
+    // GPU delegate
+    if(!exclude.contains(InferenceBackend.GPU)){
+      try {
+        Interpreter interpreter = await _gpuInterpreter(assetPath);
+        testBackend(interpreter, InferenceBackend.GPU);
+      }
+      catch (e){}
+    }
+    // XNNPack delegate
+    if(!exclude.contains(InferenceBackend.XNNPack)){
+      try{
+        Interpreter interpreter = await _xxnPackInterpreter(assetPath);
+        testBackend(interpreter, InferenceBackend.XNNPack);
+      }
+      catch (e) {}
+    }
+    // CPU delegate
+    if(!exclude.contains(InferenceBackend.CPU)){
+      try{
+        Interpreter interpreter = await _cpuInterpreter(assetPath);
+        testBackend(interpreter, InferenceBackend.CPU);
+      }
+      catch (e){}
+    }
+  }
+
+  return inferenceBackend;
+}
+
+/// Initializes the TFLite interpreter on iOS.
+///
+/// Uses either CoreML (2|3), Metal, XNNPack or CPU delegate
+Future<Map<InferenceBackend, double>> _testInterpreterIOS(
+    String assetPath,
+    void Function(Interpreter interpreter) runInterpreter,
+    {
+      List<InferenceBackend> exclude = const [],
+      int iterations = 1
+    }
+  ) async 
+{
+
+  Map<InferenceBackend, double> inferenceBackend = {}; Stopwatch s = Stopwatch();
+
+  Function testBackend = (Interpreter interpreter, InferenceBackend i){
+    s.start(); runInterpreter(interpreter); s.stop();
+    inferenceBackend.putIfAbsent(i, () => 0);
+    inferenceBackend[i] =
+      inferenceBackend[i]! + s.elapsed.inMilliseconds / iterations;
+    s.reset();
+  };
+
+  for (var i = 0; i < iterations; i++) {
+    // CoreML 3 delegate
+    if(!exclude.contains(InferenceBackend.CoreML3)){
+      try{
+        Interpreter interpreter = await _coreMLInterpreterIOS(assetPath, CoreMLVersion: 3);
+        testBackend(interpreter, InferenceBackend.CoreML3);
+      }
+      catch (e){}
+    }
+    // CoreML 2 delegate
+    if(!exclude.contains(InferenceBackend.CoreML2)){
+      try{
+        Interpreter interpreter = await _coreMLInterpreterIOS(assetPath, CoreMLVersion: 2);
+        testBackend(interpreter, InferenceBackend.CoreML2);
+      }
+      catch (e){}
+    }
+    // Metal delegate
+    if(!exclude.contains(InferenceBackend.GPU)){
+      try {
+        Interpreter interpreter = await _metalInterpreterIOS(assetPath);
+        testBackend(interpreter, InferenceBackend.Metal);
+      }
+      catch (e){}
+    }
+    // XNNPack delegate
+    if(!exclude.contains(InferenceBackend.XNNPack)){
+      try{
+        Interpreter interpreter = await _xxnPackInterpreter(assetPath);
+        testBackend(interpreter, InferenceBackend.XNNPack);
+      }
+      catch (e) {}
+    }
+    // CPU delegate
+    if(!exclude.contains(InferenceBackend.CPU)){
+      try{
+        Interpreter interpreter = await _cpuInterpreter(assetPath);
+        testBackend(interpreter, InferenceBackend.CPU);
+      }
+      catch (e){}
+    }
+  }
+
+  return inferenceBackend;
+}
+
 
 /// Initializes the TFLite interpreter on Windows.
 ///
-/// Uses the GPU mode if open CL is avail CPU mode.
-Future<Interpreter> _initInterpreterWindows() async {
-
-  Interpreter interpreter;
-
-  // get platform information
-  //DeviceInfoPlugin deviceInfo = DeviceInfoPlugin();
-  //IosDeviceInfo desktopInfo = await deviceInfo.iosInfo;
-
-  try {
-    interpreter = await _gpuInterpreter();
-    runInterpreter(input, output);
-    debugPrint("Interpreter uses GPU open-cl delegate");
+/// Uses the GPU (OpenCL), XNNPack or CPU mode
+Future<Map<InferenceBackend, double>> _testInterpreterWindows(
+  String assetPath,
+  void Function(Interpreter interpreter) runInterpreter,
+  {
+    List<InferenceBackend> exclude = const [],
+    int iterations = 1
   }
-  // on exception try XNNPack CPU delegate
-  catch (e){
-    try{
-      interpreter = await _xxnPackInterpreter();
-      runInterpreter(input, output);
-      debugPrint("Interpreter uses XNNPack delegate");
+  ) async 
+{
+  Map<InferenceBackend, double> inferenceBackend = {}; Stopwatch s = Stopwatch();
+  Function testBackend = (Interpreter interpreter, InferenceBackend i){
+    s.start(); runInterpreter(interpreter); s.stop();
+    inferenceBackend.putIfAbsent(i, () => 0);
+    inferenceBackend[i] =
+      inferenceBackend[i]! + s.elapsed.inMilliseconds / iterations;
+    s.reset();
+  };
+
+  for (var i = 0; i < iterations; i++) {
+    // GPU delegate
+    if(!exclude.contains(InferenceBackend.GPU)){
+      try {
+        Interpreter interpreter = await _gpuInterpreter(assetPath);
+        testBackend(interpreter, InferenceBackend.GPU);
+      }
+      catch (e){}
     }
-    // on exception use CPU delegate
-    catch (e) {
-      interpreter = await _cpuInterpreter();
-      runInterpreter(input, output);
-      debugPrint("Interpreter uses CPU");
+    // XNNPack delegate
+    if(!exclude.contains(InferenceBackend.XNNPack)){
+      try{
+        Interpreter interpreter = await _xxnPackInterpreter(assetPath);
+        testBackend(interpreter, InferenceBackend.XNNPack);
+      }
+      catch (e) {}
+    }
+    // CPU delegate
+    if(!exclude.contains(InferenceBackend.CPU)){
+      try{
+        Interpreter interpreter = await _cpuInterpreter(assetPath);
+        testBackend(interpreter, InferenceBackend.CPU);
+      }
+      catch (e){}
     }
   }
-      
-  return interpreter;
+
+  return inferenceBackend;
 }
 
 /// Initializes the TFLite interpreter on Linux.
 ///
-/// Uses the uses CPU mode.
-Future<Interpreter> _initInterpreterLinux() async {
-
-  Interpreter interpreter;
-
-  // get platform information
-  //DeviceInfoPlugin deviceInfo = DeviceInfoPlugin();
-  //IosDeviceInfo desktopInfo = await deviceInfo.iosInfo;
-
-  try {
-    interpreter = await _gpuInterpreter();
-    runInterpreter(input, output);
-    debugPrint("Interpreter uses GPU open-cl delegate");
+/// Uses the GPU (OpenCL), XNNPack or CPU mode
+Future<Map<InferenceBackend, double>> _testInterpreterLinux(
+  String assetPath,
+  void Function(Interpreter interpreter) runInterpreter,
+  {
+    List<InferenceBackend> exclude = const [],
+    int iterations = 1
   }
-  // on exception try XNNPack CPU delegate
-  catch (e){
-    try{
-      interpreter = await _xxnPackInterpreter();
-      runInterpreter(input, output);
-      debugPrint("Interpreter uses XNNPack delegate");
+  ) async 
+{
+  Map<InferenceBackend, double> inferenceBackend = {}; Stopwatch s = Stopwatch();
+  Function testBackend = (Interpreter interpreter, InferenceBackend i){
+    s.start(); runInterpreter(interpreter); s.stop();
+    inferenceBackend.putIfAbsent(i, () => 0);
+    inferenceBackend[i] =
+      inferenceBackend[i]! + s.elapsed.inMilliseconds / iterations;
+    s.reset();
+  };
+
+  for (var i = 0; i < iterations; i++) {
+    // GPU delegate
+    if(!exclude.contains(InferenceBackend.GPU)){
+      try {
+        Interpreter interpreter = await _gpuInterpreter(assetPath);
+        testBackend(interpreter, InferenceBackend.GPU);
+      }
+      catch (e){}
     }
-    // on exception use CPU delegate
-    catch (e) {
-      interpreter = await _cpuInterpreter();
-      runInterpreter(input, output);
-      debugPrint("Interpreter uses CPU");
+    // XNNPack delegate
+    if(!exclude.contains(InferenceBackend.XNNPack)){
+      try{
+        Interpreter interpreter = await _xxnPackInterpreter(assetPath);
+        testBackend(interpreter, InferenceBackend.XNNPack);
+      }
+      catch (e) {}
+    }
+    // CPU delegate
+    if(!exclude.contains(InferenceBackend.CPU)){
+      try{
+        Interpreter interpreter = await _cpuInterpreter(assetPath);
+        testBackend(interpreter, InferenceBackend.CPU);
+      }
+      catch (e){}
     }
   }
-      
-  return interpreter;
 
+  return inferenceBackend;
 }
 
 /// Initializes the TFLite interpreter on Mac.
 ///
-/// Uses the uses CPU mode.
-Future<Interpreter> _initInterpreterMac() async {
-
-  Interpreter interpreter;
-
-  // get platform information
-  //DeviceInfoPlugin deviceInfo = DeviceInfoPlugin();
-  //IosDeviceInfo desktopInfo = await deviceInfo.iosInfo;
-
-  try {
-    interpreter = await _gpuInterpreter();
-    runInterpreter(input, output);
-    debugPrint("Interpreter uses GPU open-cl delegate");
+/// Uses the GPU (OpenCL), XNNPack or CPU mode
+Future<Map<InferenceBackend, double>> _testInterpreterMac(
+  String assetPath,
+  void Function(Interpreter interpreter) runInterpreter,
+  {
+    List<InferenceBackend> exclude = const [],
+    int iterations = 1
   }
-  // on exception try XNNPack CPU delegate
-  catch (e){
-    try{
-      interpreter = await _xxnPackInterpreter();
-      runInterpreter(input, output);
-      debugPrint("Interpreter uses XNNPack delegate");
+  ) async 
+{
+  Map<InferenceBackend, double> inferenceBackend = {}; Stopwatch s = Stopwatch();
+  Function testBackend = (Interpreter interpreter, InferenceBackend i){
+    s.start(); runInterpreter(interpreter); s.stop();
+    inferenceBackend.putIfAbsent(i, () => 0);
+    inferenceBackend[i] =
+      inferenceBackend[i]! + s.elapsed.inMilliseconds / iterations;
+    s.reset();
+  };
+
+  for (var i = 0; i < iterations; i++) {
+    // GPU delegate
+    if(!exclude.contains(InferenceBackend.GPU)){
+      try {
+        Interpreter interpreter = await _gpuInterpreter(assetPath);
+        testBackend(interpreter, InferenceBackend.GPU);
+      }
+      catch (e){}
     }
-    // on exception use CPU delegate
-    catch (e) {
-      interpreter = await _cpuInterpreter();
-      runInterpreter(input, output);
-      debugPrint("Interpreter uses CPU");
+    // XNNPack delegate
+    if(!exclude.contains(InferenceBackend.XNNPack)){
+      try{
+        Interpreter interpreter = await _xxnPackInterpreter(assetPath);
+        testBackend(interpreter, InferenceBackend.XNNPack);
+      }
+      catch (e) {}
+    }
+    // CPU delegate
+    if(!exclude.contains(InferenceBackend.CPU)){
+      try{
+        Interpreter interpreter = await _cpuInterpreter(assetPath);
+        testBackend(interpreter, InferenceBackend.CPU);
+      }
+      catch (e){}
     }
   }
-      
-  return interpreter;
-  
+
+  return inferenceBackend;
 }
-*/
 
 
 /// Initializes the interpreter with NPU acceleration for Android.
@@ -307,9 +445,21 @@ Future<Interpreter> _metalInterpreterIOS(String assetPath) async {
 }
 
 /// Initializes the interpreter with coreML acceleration for iOS.
-Future<Interpreter> _coreMLInterpreterIOS(String assetPath) async {
+Future<Interpreter> _coreMLInterpreterIOS(
+  String assetPath,
+  {
+    int CoreMLVersion = 1
+  }
+  ) async 
+{
 
-  var interpreterOptions = InterpreterOptions()..addDelegate(CoreMlDelegate());
+  var interpreterOptions = InterpreterOptions()..addDelegate(
+    CoreMlDelegate(
+      options: CoreMlDelegateOptions(
+        coremlVersion: CoreMLVersion,
+      )
+    )
+  );
   Interpreter i = await Interpreter.fromAsset(
     assetPath,
     options: interpreterOptions
