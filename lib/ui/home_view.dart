@@ -54,6 +54,7 @@ class _HomeViewState extends State<HomeView> {
   @override
   void initState() {
     super.initState();
+    init();
     // get the height of the bottom sheet from the last rendered frame and
     // max and min drag values
     WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
@@ -64,6 +65,28 @@ class _HomeViewState extends State<HomeView> {
         bottomSheetMaxY = 0;
       });
     });
+  }
+
+  void init() async {
+    /// the object detection model
+    GetIt.I.registerSingleton<SignDetectionInterpreter>(
+      SignDetectionInterpreter(name: "StreetSignDetectionInterpreter")
+    );
+    await GetIt.I<SignDetectionInterpreter>().init(
+      cameraImageHeight     , cameraImageWidth     , cameraImageChannels,
+      currentMlModelInHeight, currentMlModelInWIdth, currentMlModelInChannels
+    );
+    setState(() {});
+  }
+
+  @override
+  void dispose() {
+    GetIt.I.unregister<SignDetectionInterpreter>(
+      disposingFunction: (p0) {
+        p0.free();
+      },
+    );
+    super.dispose();
   }
 
   @override
