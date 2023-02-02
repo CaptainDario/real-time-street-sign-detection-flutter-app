@@ -26,7 +26,7 @@ class BottomInfoSheet extends StatefulWidget {
   /// a list of all available inference backends
   final List<InferenceBackend> availableBackends;
   /// the callback that is executed when the model should change
-  final void Function(InferenceBackend? backend)? onChangedBackend;
+  final void Function (InferenceBackend? backend)? onChangedBackend;
 
   /// the callback that should be invoked when the users drags the bottom sheet
   final void Function(DragUpdateDetails details)? onDragged;

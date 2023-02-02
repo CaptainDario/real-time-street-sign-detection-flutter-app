@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import 'package:get_it/get_it.dart';
+import 'package:flutter_phoenix/flutter_phoenix.dart';
 
 import 'package:street_sign_detection/tflite/object_detection.dart';
 import 'package:street_sign_detection/tflite/stats.dart';
@@ -12,6 +13,8 @@ import 'package:street_sign_detection/ui/info_page.dart';
 import 'package:street_sign_detection/ml_models.dart';
 import 'package:street_sign_detection/ui/camera_object_detector.dart';
 import 'package:street_sign_detection/settings.dart';
+import 'package:street_sign_detection/tflite/sign_detection_interpreter.dart';
+import 'package:street_sign_detection/globals.dart';
 
 
 
@@ -54,7 +57,21 @@ class _HomeViewState extends State<HomeView> {
   @override
   void initState() {
     super.initState();
-    init();
+
+    if(GetIt.I.isRegistered<SignDetectionInterpreter>())
+      GetIt.I.unregister<SignDetectionInterpreter>(
+        disposingFunction: (p0) => p0.free(),
+      );
+    
+    GetIt.I.registerSingleton<SignDetectionInterpreter>(
+      SignDetectionInterpreter(name: "StreetSignDetectionInterpreter")
+    );
+    GetIt.I<SignDetectionInterpreter>().init(
+      cameraImageHeight     , cameraImageWidth     , cameraImageChannels,
+      currentMlModelInHeight, currentMlModelInWIdth, currentMlModelInChannels
+    ).then((value) => setState(() {}));
+    
+
     // get the height of the bottom sheet from the last rendered frame and
     // max and min drag values
     WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
@@ -65,28 +82,6 @@ class _HomeViewState extends State<HomeView> {
         bottomSheetMaxY = 0;
       });
     });
-  }
-
-  void init() async {
-    /// the object detection model
-    GetIt.I.registerSingleton<SignDetectionInterpreter>(
-      SignDetectionInterpreter(name: "StreetSignDetectionInterpreter")
-    );
-    await GetIt.I<SignDetectionInterpreter>().init(
-      cameraImageHeight     , cameraImageWidth     , cameraImageChannels,
-      currentMlModelInHeight, currentMlModelInWIdth, currentMlModelInChannels
-    );
-    setState(() {});
-  }
-
-  @override
-  void dispose() {
-    GetIt.I.unregister<SignDetectionInterpreter>(
-      disposingFunction: (p0) {
-        p0.free();
-      },
-    );
-    super.dispose();
   }
 
   @override
@@ -130,16 +125,19 @@ class _HomeViewState extends State<HomeView> {
       backgroundColor: dcaitiBlack,
       body: Stack(
         children: [
-          Positioned.fill(
-            child: Align(
-              alignment: Alignment.topCenter,
-              child: CameraObjectDetector(
-                GetIt.I<List<CameraDescription>>()[noSelectedCamera],
-                onCameraControllerCreated: (cameraController) =>
-                  currentCameraController = cameraController,
+          !GetIt.I.isRegistered<SignDetectionInterpreter>() || 
+          !GetIt.I<SignDetectionInterpreter>().wasInitialized
+            ? Container()
+            : Positioned.fill(
+              child: Align(
+                alignment: Alignment.topCenter,
+                child: CameraObjectDetector(
+                  GetIt.I<List<CameraDescription>>()[noSelectedCamera],
+                  onCameraControllerCreated: (cameraController) =>
+                    currentCameraController = cameraController,
+                ),
               ),
             ),
-          ),
 
           // change camera button
           Positioned(
@@ -202,17 +200,29 @@ class _HomeViewState extends State<HomeView> {
 
                   mlModel: GetIt.I<Settings>().mlModel,
                   availablemlModels: MLModels.values,
-                  onChangedModel: (value) => setState(() {
-                    if(value != null)
+                  onChangedModel: (value) async {
+                    if(value != null){
                       GetIt.I<Settings>().mlModel = value;
-                  }),
+                      
+                      setState(() {});
+                    }
+                  },
 
                   backend: GetIt.I<Settings>().inferenceBackend,
                   availableBackends: GetIt.I<Settings>().inferenceBackends,
-                  onChangedBackend: (backend) => setState(() {
-                    if(backend != null)
+                  onChangedBackend: (backend) async {
+                    if(backend != null){
                       GetIt.I<Settings>().inferenceBackend = backend;
-                  }),
+
+                      await currentCameraController!.stopImageStream();
+                      GetIt.I.unregister<SignDetectionInterpreter>(
+                        disposingFunction: (p0) => p0.free(),
+                      );
+                      currentCameraController = null;
+
+                      Phoenix.rebirth(context);
+                    }
+                  },
 
                   onDragged: (details) {
                     if(bottomSheetY - details.delta.dy < bottomSheetMinY! || 

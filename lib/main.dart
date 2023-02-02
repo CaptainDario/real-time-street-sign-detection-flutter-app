@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_phoenix/flutter_phoenix.dart';
 
 import 'package:get_it/get_it.dart';
 import 'package:camera/camera.dart';
@@ -7,6 +8,7 @@ import 'package:camera/camera.dart';
 import 'package:street_sign_detection/settings.dart';
 import 'package:street_sign_detection/tflite/stats.dart';
 import 'package:street_sign_detection/ui/home_view.dart';
+
 
 
 void main() async {
@@ -35,7 +37,9 @@ class SignDetectionApp extends StatelessWidget {
     return MaterialApp(
       title: 'DCAITI - Street Sign Detection',
       theme: ThemeData.dark(),
-      home: HomeView(),
+      home: Phoenix(
+        child: HomeView()
+      ),
     );
   }
 }

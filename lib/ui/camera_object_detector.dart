@@ -39,20 +39,19 @@ class _CameraObjectDetectorState extends State<CameraObjectDetector> with Widget
   late CameraController cameraController;
   /// Is currently inference running
   bool runningInference = false;
+  /// current object detections
+  ObjectDetections objectDetections = ObjectDetections();
 
 
   @override
   void initState() {
     super.initState();
 
-    GetIt.I.registerSingleton(ObjectDetections());
-
     initCameraController(widget.cameraDescription);
   }
 
   @override
   void dispose() {
-    GetIt.I.unregister<ObjectDetections>();
     cameraController.dispose();
     super.dispose();
   }
@@ -117,7 +116,7 @@ class _CameraObjectDetectorState extends State<CameraObjectDetector> with Widget
       var result =
         (await GetIt.I<SignDetectionInterpreter>().runInference(cameraImage));
 
-      GetIt.I<ObjectDetections>().objectDetections = result.item1;
+      objectDetections.objectDetections = result.item1;
       GetIt.I<InferenceStats>().copy(result.item2);
 
       runningInference = false;
@@ -132,7 +131,7 @@ class _CameraObjectDetectorState extends State<CameraObjectDetector> with Widget
       initCameraController(widget.cameraDescription);
 
     return ChangeNotifierProvider.value(
-      value: GetIt.I<ObjectDetections>(),
+      value: objectDetections,
       builder: (context, child) {
 
          // check that the camera has been initialized
