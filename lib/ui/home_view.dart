@@ -130,10 +130,15 @@ class _HomeViewState extends State<HomeView> {
       backgroundColor: dcaitiBlack,
       body: Stack(
         children: [
-          CameraObjectDetector(
-            GetIt.I<List<CameraDescription>>()[noSelectedCamera],
-            onCameraControllerCreated: (cameraController) =>
-              currentCameraController = cameraController,
+          Positioned.fill(
+            child: Align(
+              alignment: Alignment.topCenter,
+              child: CameraObjectDetector(
+                GetIt.I<List<CameraDescription>>()[noSelectedCamera],
+                onCameraControllerCreated: (cameraController) =>
+                  currentCameraController = cameraController,
+              ),
+            ),
           ),
 
           // change camera button
