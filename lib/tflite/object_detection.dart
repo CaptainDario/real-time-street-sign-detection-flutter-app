@@ -14,7 +14,7 @@ class ObjectDetections extends ChangeNotifier {
   }
 }
 
-class ObjectDetection {
+class ObjectDetection implements Comparable<ObjectDetection>{
   /// Index of the result
   int _id;
 
@@ -39,4 +39,15 @@ class ObjectDetection {
   double get score => _score;
 
   Rect get location => _location;
+
+  @override
+  int compareTo(ObjectDetection other) {
+    if (this.score == other.score) {
+      return 0;
+    } else if (this.score > other.score) {
+      return -1;
+    } else {
+      return 1;
+    }
+  }
 }
