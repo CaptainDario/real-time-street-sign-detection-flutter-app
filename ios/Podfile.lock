@@ -59,7 +59,7 @@ SPEC CHECKSUMS:
   image_picker_ios: b786a5dcf033a8336a657191401bfdf12017dabb
   path_provider_ios: 14f3d2fd28c4fdb42f44e0f751d12861c43cee02
   TensorFlowLiteC: 8a8cb6fa20ad74dff29b5e490d02c36a14d48148
-  tflite_flutter: ad523096defbbd420af0dedbd4bfc853f8a48c00
+  tflite_flutter: 57bfede7ef02c24fb20d8cbc0c99259469fc5d7c
   tflite_flutter_helper: 543b46b6bd064b21c92ea6e54bc0b29f1ce74cb5
 
 PODFILE CHECKSUM: ef19549a9bc3046e7bb7d2fab4d021637c0c58a3

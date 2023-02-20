@@ -56,8 +56,8 @@ class SignDetectionInterpreter with ChangeNotifier{
   /// processing isolate.
   SignDetectionInterpreter({
     this.name = "SignDetectionInterpreter",
-    this.tfLiteAssetPath = "detect.tflite",
-    this.labelAssetPath = "assets/labelmap.txt"
+    this.tfLiteAssetPath = "yolov8_n.tflite",
+    this.labelAssetPath = "assets/yolov8_labels.txt"
   });
 
 
@@ -80,7 +80,11 @@ class SignDetectionInterpreter with ChangeNotifier{
       modelInputWidth, modelInputHeight, modelInputChannels, 
       await loadLabels()
     );
-    signDetectionData.setupOutput(await Interpreter.fromAsset(_usedTFLiteAssetPath));
+    signDetectionData.setupOutput(await Interpreter.fromAsset(
+      _usedTFLiteAssetPath,
+      
+      )
+    );
 
     // find the best available backend and load the model
     /*

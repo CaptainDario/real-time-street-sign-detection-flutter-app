@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 
 import 'package:camera/camera.dart';
 import 'package:image/image.dart' as Image;
+import 'package:street_sign_detection/utils/nms_utils.dart';
 import 'package:universal_io/io.dart';
 import 'package:tflite_flutter_helper/tflite_flutter_helper.dart';
 import 'package:tflite_flutter/tflite_flutter.dart';
@@ -38,20 +39,11 @@ class SignDetectionData {
   int modelInputChannels;
 
   /// The raw output of the model, needs to be processed by `processRawOutput`
-  late Map<int, ByteBuffer> output;
+  late Map<int, List<List<List<double>>>> output;
   /// The shapes of the output tensors of the model
   late List _outputShapes = [];
   /// The types of the output tensors of the TF Lite model
   late List _outputTypes = [];
-  /// Output of the model of all locations
-  late TensorBuffer outputLocations;
-  /// Output of the model for the classes of the  locations
-  late TensorBuffer outputClasses;
-  /// Output of the model for the objectness scores of locations
-  late TensorBuffer outputScores;
-  /// Output of the model for the number of locations
-  late TensorBuffer numLocations;
-
 
 
 
@@ -86,17 +78,14 @@ class SignDetectionData {
       _outputTypes.add(tensor.type);
     });
 
-    // TensorBuffers for output tensors
-    outputLocations = TensorBufferFloat(_outputShapes[0]);
-    outputClasses = TensorBufferFloat(_outputShapes[1]);
-    outputScores = TensorBufferFloat(_outputShapes[2]);
-    numLocations = TensorBufferFloat(_outputShapes[3]);
-
     output = {
-      0: outputLocations.buffer,
-      1: outputClasses.buffer,
-      2: outputScores.buffer,
-      3: numLocations.buffer,
+      0 : List.generate(
+        _outputShapes[0][0],
+          (_) => new List.generate(_outputShapes[0][1],
+            (_) => new List.filled(_outputShapes[0][2], 0.0),
+          growable: false),
+        growable: false
+      ),
     };
   }
 
@@ -108,19 +97,22 @@ class SignDetectionData {
     if (Platform.isAndroid) {
       img = Image.copyRotate(img, 90);
     }
+    
 
     // convert image to tensor and resize + crop it to the input dimension
     // of the model
-    TensorImage tensorImg = TensorImage.fromImage(img);
+    TensorImage tensorImg = TensorImage(TfLiteType.float32);
+    tensorImg.loadImage(img);
     if(imageProcessor == null){
       int largestSide = max(this.inputImageHeight, this.inputImageWidth);
       imageProcessor = ImageProcessorBuilder()
-        .add(ResizeWithCropOrPadOp(largestSide, largestSide))
-        .add(ResizeOp(modelInputHeight, modelInputWidth, ResizeMethod.BILINEAR))
+        .add(ResizeWithCropOrPadOp(modelInputHeight, modelInputWidth))
+        //.add(ResizeOp(modelInputHeight, modelInputWidth, ResizeMethod.BILINEAR))
+        .add(NormalizeOp(0.0, 255.0))
         .build();
     }
+    
     tensorImg = imageProcessor!.process(tensorImg);
-
     return tensorImg;
   }
 
@@ -129,38 +121,39 @@ class SignDetectionData {
   List<ObjectDetection> postProcessRawOutput(){
     List<ObjectDetection> detections = [];
 
-    /// Converts the raw output to BBoxs, confidence scores and classes
-    /// Drops classifications below threshold
-    List<Rect> locations = BoundingBoxUtils.convert(
-      tensor: outputLocations,
-      valueIndex: [1, 0, 3, 2],
-      boundingBoxAxis: 2,
-      boundingBoxType: BoundingBoxType.BOUNDARIES,
-      coordinateType: CoordinateType.RATIO,
-      height: modelInputHeight,
-      width: modelInputWidth,
-    );
-
-    for (int i = 0; i < numLocations.getIntValue(0); i++) {
-      // Prediction score
-      var score = outputScores.getDoubleValue(i);
-
-      // Label string
-      var labelIndex = outputClasses.getIntValue(i) + 1;
-      var label = labels.elementAt(labelIndex);
-
-      if (score > 0.5) {
-        // applies the inverse operation of the image procesor
-        Rect transformedRect = imageProcessor!.inverseTransformRect(
-          locations[i], inputImageHeight, inputImageWidth);
-
-        detections.add(
-          ObjectDetection(i, label, score, transformedRect),
-        );
+    // iterate over all detections
+    for (int i = 0; i < _outputShapes[0][2]; i++) {
+      // iterate over the detection classifications scores
+      for (var j = 4; j < _outputShapes[0][1]; j++) {
+        /// Drop classifications below threshold
+        if(output[0]![0][j][i] > 0.5){
+          // Converts the raw output to BBoxs, confidence scores and classes
+          detections.add(
+            ObjectDetection(
+              (j*_outputShapes[0][2] + i).toInt(),
+              labels[j-4],
+              output[0]![0][j][i],
+              imageProcessor!.inverseTransformRect(
+                Rect.fromLTWH(
+                  output[0]![0][0][i] - output[0]![0][2][i]/2, 
+                  output[0]![0][1][i] - output[0]![0][3][i]/2,
+                  output[0]![0][2][i], 
+                  output[0]![0][3][i], 
+                ),
+                inputImageHeight, inputImageWidth
+              )
+            )  
+          );
+        }  
       }
     }
+    // NMS
+    print("detections before NMS ${detections.length}");
+    var _detections = nms(detections, 0.5);
 
-    return detections;
+    print("detections ${_detections.length}");
+
+    return _detections;
   }
 
   /// Defines how to run the interpreter
