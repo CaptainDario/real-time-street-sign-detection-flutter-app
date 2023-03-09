@@ -20,6 +20,12 @@ You should be good to go!
 3. Run `flutter pub get` in this app's directory
 4. Copy all `.tflite` files from the release you want to use to the `assets`-directory of this project
 
+Android setup
+1. Copy the tensorflow binaries from [this release]() to 
+  1. `libtensorflowlite_c_arm64.so` -> `android/app/src/main/jniLibs/arm64-v8a/libtensorflowlite_c.so`
+  2. `libtensorflowlite_c_armeabi.so` -> `android/app/src/main/jniLibs/armeabi-v7a/libtensorflowlite_c.so`
+  3. `libtensorflowlite_c_x86.so` -> `android/app/src/main/jniLibs/x86_64/libtensorflowlite_c.so`
+
 Now you should be able to run the app:
 
 `flutter run`
