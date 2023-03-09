@@ -18,6 +18,7 @@ You should be good to go!
 1. Clone this repo `git clone https://github.com/CaptainDario/street_sign_detection_app`
 2. Change in its directory `cd street_sign_detection_app`
 3. Run `flutter pub get` in this app's directory
+4. Copy all `.tflite` files from the release you want to use to the `assets`-directory of this project
 
 Now you should be able to run the app:
 
