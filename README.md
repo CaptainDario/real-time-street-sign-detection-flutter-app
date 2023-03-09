@@ -18,10 +18,10 @@ You should be good to go!
 1. Clone this repo `git clone https://github.com/CaptainDario/street_sign_detection_app`
 2. Change in its directory `cd street_sign_detection_app`
 3. Run `flutter pub get` in this app's directory
-4. Copy all `.tflite` files from the release you want to use to the `assets`-directory of this project
+4. Copy all `.tflite` files from the [release](https://github.com/CaptainDario/real-time-street-sign-detection-flutter-app/releases) you want to use to the `assets`-directory of this project
 
 Android setup
-1. Copy the tensorflow binaries from [this release]() to 
+1. Copy the tensorflow binaries from the [release](https://github.com/CaptainDario/real-time-street-sign-detection-flutter-app/releases) you want to use to
   1. `libtensorflowlite_c_arm64.so` -> `android/app/src/main/jniLibs/arm64-v8a/libtensorflowlite_c.so`
   2. `libtensorflowlite_c_armeabi.so` -> `android/app/src/main/jniLibs/armeabi-v7a/libtensorflowlite_c.so`
   3. `libtensorflowlite_c_x86.so` -> `android/app/src/main/jniLibs/x86_64/libtensorflowlite_c.so`
