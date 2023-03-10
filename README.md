@@ -30,9 +30,8 @@ Now you should be able to run the app:
 
 `flutter run`
 
-## Sample video
-
-TODO: add a sample video here
+## Sample Image
+<img src="https://user-images.githubusercontent.com/51273483/224197422-2780e21e-0f07-4dd4-a5af-e48c63c2a1ae.jpg"  width="130" height="310">
 
 ## Disclaimer
 
